@@ -20,9 +20,10 @@ export function CreatePostWizard() {
   }
 
   return (
-    <div>
-      <Image src={user.imageUrl} alt="user image" width={30} height={30} />
-    </div>
+    <div className="flex gap-4 w-full">
+      <UserButton afterSignOutUrl="/" />
+      <input type="text" placeholder="Type something..." className="bg-transparent grow outline-none" />
+    </div >
   )
 }
 
@@ -49,14 +50,13 @@ export default function Home() {
         <div className="flex flex-col w-full h-screen bg-black md:max-w-4xl border-x">
           <div className="flex flex-row gap-4 justify-center items-center p-4 border-b">
             <SignedIn>
-              <UserButton afterSignOutUrl="/" />
+              <CreatePostWizard />
             </SignedIn>
             <SignedOut>
               <SignInButton />
               <SignUpButton />
             </SignedOut>
           </div>
-          <CreatePostWizard />
           <div className="flex flex-col">
             {data?.map((post) => (
               <div key={post.id} className="p-6 border-b border-zinc-300">

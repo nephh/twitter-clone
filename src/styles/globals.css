@@ -5,3 +5,15 @@
 body {
   @apply bg-gray-900 text-zinc-200;
 }
+
+.cl-avatarBox {
+  @apply h-20 w-20;
+}
+
+.cl-profileSectionPrimaryButton {
+  @apply text-zinc-400;
+}
+
+.cl-userPreviewMainIdentifier {
+  @apply text-zinc-100;
+}
