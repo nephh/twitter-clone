@@ -12,8 +12,8 @@ import {
 import { api } from "~/utils/api";
 
 export default function Home() {
-  const hello = api.post.hello.useQuery({ text: "from tRPC" });
   const { user, isSignedIn } = useUser();
+  const { data } = api.post.getAll.useQuery();
 
   return (
     <>
@@ -34,10 +34,8 @@ export default function Home() {
               <SignUpButton />
             </SignedOut>
           </h1>
-          <p className="text-2xl text-white">
-            {hello.data ? hello.data.greeting : "Loading tRPC query..."}
-          </p>
         </div>
+        <p>{data?.map((post) => <div key={post.id}>{post.content}</div>)}</p>
       </main>
     </>
   );
