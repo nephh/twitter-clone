@@ -58,8 +58,9 @@ export default function Home() {
             </SignedOut>
           </div>
           <div className="flex flex-col">
-            {data?.map((post) => (
+            {data?.map(({ post, author }) => (
               <div key={post.id} className="p-6 border-b border-zinc-300">
+                <div>{author?.fullName} <span className="text-xs">@{author?.username}</span></div>
                 <div>{post.createdAt.toLocaleString()}</div>
                 <div>{post.content}</div>
               </div>
