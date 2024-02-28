@@ -19,16 +19,16 @@ const config = {
   },
   // This is for if we want to use next/image Image tag for optimized images. This is just an example with clerk
   //
-  // images: {
-  //   remotePatterns: [
-  //     {
-  //       protocol: "https",
-  //       hostname: "img.clerk.com",
-  //       port: "",
-  //       pathname: "/*",
-  //     },
-  //   ],
-  // },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "img.clerk.com",
+        port: "",
+        pathname: "/*",
+      },
+    ],
+  },
 };
 
 export default config;

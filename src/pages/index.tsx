@@ -9,7 +9,7 @@ import {
   useUser,
 } from "@clerk/nextjs";
 
-import { api } from "~/utils/api";
+import { type RouterOutputs, api } from "~/utils/api";
 import Image from "next/image";
 
 export function CreatePostWizard() {
@@ -20,13 +20,45 @@ export function CreatePostWizard() {
   }
 
   return (
-    <div className="flex gap-4 w-full">
+    <div className="flex w-full gap-4">
       <UserButton afterSignOutUrl="/" />
-      <input type="text" placeholder="Type something..." className="bg-transparent grow outline-none" />
-    </div >
-  )
+      <input
+        type="text"
+        placeholder="Type something..."
+        className="grow bg-transparent outline-none"
+      />
+    </div>
+  );
 }
 
+type PostWithUser = RouterOutputs["post"]["getAll"][number];
+
+function PostView(props: PostWithUser) {
+  const { post, author } = props;
+  return (
+    <div className="border-b border-zinc-300 p-6">
+      <div className="mb-4 flex flex-row justify-between ">
+        <div className="flex w-full flex-row items-center gap-4">
+          <Image
+            src={author.imageUrl}
+            alt="post profile picture"
+            width={50}
+            height={50}
+            className="rounded-full"
+          />
+          <div className="flex flex-col">
+            <p className="text-lg">{author.fullName}</p>
+            <p className="text-xs">@{author.username}</p>
+          </div>
+        </div>
+        <div className="flex justify-end text-sm text-gray-500">
+          {post.createdAt.toLocaleString()}
+        </div>
+      </div>
+      <div className="p-2">{post.content}</div>
+    </div>
+  );
+}
 export default function Home() {
   const { user, isSignedIn } = useUser();
   const { data, isLoading } = api.post.getAll.useQuery();
@@ -47,8 +79,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex justify-center">
-        <div className="flex flex-col w-full h-screen bg-black md:max-w-4xl border-x">
-          <div className="flex flex-row gap-4 justify-center items-center p-4 border-b">
+        <div className="flex h-screen w-full flex-col border-x md:max-w-4xl">
+          <div className="flex flex-row items-center justify-center gap-4 border-b p-4">
             <SignedIn>
               <CreatePostWizard />
             </SignedIn>
@@ -58,12 +90,8 @@ export default function Home() {
             </SignedOut>
           </div>
           <div className="flex flex-col">
-            {data?.map(({ post, author }) => (
-              <div key={post.id} className="p-6 border-b border-zinc-300">
-                <div>{author?.fullName} <span className="text-xs">@{author?.username}</span></div>
-                <div>{post.createdAt.toLocaleString()}</div>
-                <div>{post.content}</div>
-              </div>
+            {data.map(({ post, author }) => (
+              <PostView key={post.id} post={post} author={author} />
             ))}
           </div>
         </div>
