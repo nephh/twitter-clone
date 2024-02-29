@@ -13,23 +13,59 @@ import { type RouterOutputs, api } from "~/utils/api";
 import Image from "next/image";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { Loading, LoadingPage } from "~/components/Loading";
+import { useState } from "react";
 
 dayjs.extend(relativeTime);
 
-export function CreatePostWizard() {
-  const { user, isSignedIn } = useUser();
+// The UserButton we are using can take a second to load in, so we use an image in the same place
+// that will be replaced by the UserButton once it is loaded in. Looks a bit cleaner, but obviously is a bit inefficient.
+// The "size" prop also only changes the size of the Image, and we need to go into the styles file to change
+// the UserButton. This component can be reused, just make sure to resize the UserButton separately each time if needed.
+//
+function ProfilePicture({ size = 80 }) {
+  const { user, isLoaded } = useUser();
+
+  if (!isLoaded) {
+    return <LoadingPage />;
+  }
 
   if (!user) {
     return null;
   }
 
   return (
+    <div style={{ position: "relative", width: size, height: size }}>
+      <div
+        style={{ position: "absolute", zIndex: 1 }}
+        className="create-post-avatar"
+      >
+        <UserButton afterSignOutUrl="/" />
+      </div>
+      <Image
+        src={user.imageUrl}
+        alt="profile picture"
+        width={size}
+        height={size}
+        className="rounded-full"
+        style={{ position: "absolute", zIndex: 0 }}
+      />
+    </div>
+  );
+}
+
+function CreatePostWizard() {
+  const [value, setValue] = useState("");
+
+  return (
     <div className="flex w-full gap-4">
-      <UserButton afterSignOutUrl="/" />
+      <ProfilePicture />
       <input
         type="text"
         placeholder="Type something..."
-        className="grow bg-transparent outline-none"
+        className={`grow bg-transparent outline-none ${!value && "italic"}`}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
       />
     </div>
   );
@@ -42,7 +78,7 @@ function Post(props: PostWithUser) {
 
   return (
     <div className="border-b border-zinc-300 p-6">
-      <div className="mb-4 flex flex-row justify-between ">
+      <div className="mb-4 flex flex-row justify-between">
         <div className="flex w-full flex-row items-center gap-4">
           <Image
             src={author.imageUrl}
@@ -53,10 +89,11 @@ function Post(props: PostWithUser) {
           />
           <div className="flex flex-col">
             <p className="text-lg font-semibold">{author.fullName}</p>
-            <p className="text-xs font-semibold">@{author.username}</p>
+            <p className="text-xs">@{author.username}</p>
           </div>
         </div>
-        <div className="flex justify-end text-sm font-thin text-gray-500">
+        {/* not sure if I want this in the right corner like this or next to the user's name */}
+        <div className="flex justify-end text-sm font-thin text-gray-500 w-full">
           {dayjs(post.createdAt).fromNow()}
         </div>
       </div>
@@ -69,7 +106,7 @@ function PostFeed() {
   const { data, isLoading } = api.post.getAll.useQuery();
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <Loading />;
   }
 
   if (!data) {
@@ -86,11 +123,11 @@ function PostFeed() {
 }
 
 export default function Home() {
-  // This is the signed in user's data. We are not using isSignedIn,
-  // but we might want the data from user later.
-  //
-  // const { user, isSignedIn } = useUser();
-  //
+  const { isSignedIn, isLoaded } = useUser();
+
+  if (!isLoaded) {
+    return <LoadingPage />;
+  }
 
   return (
     <>
@@ -102,13 +139,14 @@ export default function Home() {
       <main className="flex justify-center">
         <div className="flex h-screen w-full flex-col border-x md:max-w-4xl">
           <div className="flex flex-row items-center justify-center gap-4 border-b p-4">
-            <SignedIn>
+            {isSignedIn ? (
               <CreatePostWizard />
-            </SignedIn>
-            <SignedOut>
-              <SignInButton />
-              <SignUpButton />
-            </SignedOut>
+            ) : (
+              <div>
+                <SignInButton />
+                <SignUpButton />
+              </div>
+            )}
           </div>
           <PostFeed />
         </div>

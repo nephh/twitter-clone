@@ -10,7 +10,7 @@ body {
   @apply bg-gray-900 text-zinc-200;
 }
 
-.cl-avatarBox {
+.create-post-avatar .cl-avatarBox {
   @apply h-20 w-20;
 }
 
