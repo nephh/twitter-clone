@@ -11,6 +11,10 @@ import {
 
 import { type RouterOutputs, api } from "~/utils/api";
 import Image from "next/image";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 export function CreatePostWizard() {
   const { user, isSignedIn } = useUser();
@@ -33,8 +37,9 @@ export function CreatePostWizard() {
 
 type PostWithUser = RouterOutputs["post"]["getAll"][number];
 
-function PostView(props: PostWithUser) {
+function Post(props: PostWithUser) {
   const { post, author } = props;
+
   return (
     <div className="border-b border-zinc-300 p-6">
       <div className="mb-4 flex flex-row justify-between ">
@@ -47,20 +52,20 @@ function PostView(props: PostWithUser) {
             className="rounded-full"
           />
           <div className="flex flex-col">
-            <p className="text-lg">{author.fullName}</p>
-            <p className="text-xs">@{author.username}</p>
+            <p className="text-lg font-semibold">{author.fullName}</p>
+            <p className="text-xs font-semibold">@{author.username}</p>
           </div>
         </div>
-        <div className="flex justify-end text-sm text-gray-500">
-          {post.createdAt.toLocaleString()}
+        <div className="flex justify-end text-sm font-thin text-gray-500">
+          {dayjs(post.createdAt).fromNow()}
         </div>
       </div>
       <div className="p-2">{post.content}</div>
     </div>
   );
 }
-export default function Home() {
-  const { user, isSignedIn } = useUser();
+
+function PostFeed() {
   const { data, isLoading } = api.post.getAll.useQuery();
 
   if (isLoading) {
@@ -70,6 +75,22 @@ export default function Home() {
   if (!data) {
     return <div>Something went wrong :(</div>;
   }
+
+  return (
+    <div className="flex flex-col">
+      {data.map(({ post, author }) => (
+        <Post key={post.id} post={post} author={author} />
+      ))}
+    </div>
+  );
+}
+
+export default function Home() {
+  // This is the signed in user's data. We are not using isSignedIn,
+  // but we might want the data from user later.
+  //
+  // const { user, isSignedIn } = useUser();
+  //
 
   return (
     <>
@@ -89,11 +110,7 @@ export default function Home() {
               <SignUpButton />
             </SignedOut>
           </div>
-          <div className="flex flex-col">
-            {data.map(({ post, author }) => (
-              <PostView key={post.id} post={post} author={author} />
-            ))}
-          </div>
+          <PostFeed />
         </div>
       </main>
     </>
