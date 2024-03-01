@@ -5,7 +5,7 @@ export default authMiddleware({
   publicRoutes: ["/", "/api/trpc/post.getall"],
   // Routes that can always be accessed, and have
   // no authentication information
-  ignoredRoutes: ["api/trpc/post.getall"],
+  // ignoredRoutes: ["api/trpc/post.getall"],
 });
 
 export const config = {
