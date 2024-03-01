@@ -39,6 +39,7 @@ function ProfilePicture({ size = 80 }) {
       <div
         style={{ position: "absolute", zIndex: 1 }}
         className="create-post-avatar"
+        itemType="button"
       >
         <UserButton afterSignOutUrl="/" />
       </div>
@@ -56,18 +57,38 @@ function ProfilePicture({ size = 80 }) {
 
 function CreatePostWizard() {
   const [value, setValue] = useState("");
+  const ctx = api.useUtils();
+  const { mutate, isLoading } = api.post.create.useMutation({
+    onSuccess: () => {
+      setValue("");
+      // void means we don't care about waiting for this to finish, no need for async/await
+      //
+      void ctx.post.getAll.invalidate();
+    },
+  });
+
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    mutate({ content: value });
+  }
 
   return (
-    <div className="flex w-full gap-4">
-      <ProfilePicture />
+    <form
+      className="flex w-full flex-row-reverse gap-4"
+      onSubmit={(e) => handleSubmit(e)}
+    >
+      <button name="post">Post</button>
       <input
         type="text"
+        name="post"
         placeholder="Type something..."
         className={`grow bg-transparent outline-none ${!value && "italic"}`}
         value={value}
         onChange={(e) => setValue(e.target.value)}
+        disabled={isLoading}
       />
-    </div>
+      <ProfilePicture />
+    </form>
   );
 }
 
@@ -93,7 +114,7 @@ function Post(props: PostWithUser) {
           </div>
         </div>
         {/* not sure if I want this in the right corner like this or next to the user's name */}
-        <div className="flex justify-end text-sm font-thin text-gray-500 w-full">
+        <div className="flex w-full justify-end text-sm font-thin text-gray-500">
           {dayjs(post.createdAt).fromNow()}
         </div>
       </div>
