@@ -57,15 +57,25 @@ function ProfilePicture({ size = 80 }) {
 
 function CreatePostWizard() {
   const [value, setValue] = useState("");
+  const [charCount, setCharCount] = useState(0);
   const ctx = api.useUtils();
   const { mutate, isLoading } = api.post.create.useMutation({
     onSuccess: () => {
       setValue("");
+      setCharCount(0);
       // void means we don't care about waiting for this to finish, no need for async/await
       //
       void ctx.post.getAll.invalidate();
     },
   });
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const newCharCount = e.target.value.length;
+    if (newCharCount <= 255) {
+      setValue(e.target.value);
+      setCharCount(newCharCount);
+    }
+  }
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -77,6 +87,7 @@ function CreatePostWizard() {
       className="flex w-full flex-row-reverse gap-4"
       onSubmit={(e) => handleSubmit(e)}
     >
+      <p className="absolute text-gray-500 text-xs font-thin">{255 - charCount}</p>
       <button name="post">Post</button>
       <input
         type="text"
@@ -84,7 +95,7 @@ function CreatePostWizard() {
         placeholder="Type something..."
         className={`grow bg-transparent outline-none ${!value && "italic"}`}
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => handleChange(e)}
         disabled={isLoading}
       />
       <ProfilePicture />

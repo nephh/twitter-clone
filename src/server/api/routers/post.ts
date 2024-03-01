@@ -1,5 +1,5 @@
 import { type User, clerkClient } from "@clerk/nextjs/server";
-import { TRPCError, createInputMiddleware } from "@trpc/server";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import {
@@ -60,7 +60,7 @@ export const postRouter = createTRPCRouter({
   create: privateProcedure
     .input(
       z.object({
-        content: z.string().min(1).max(280),
+        content: z.string().min(1).max(255),
       }),
     )
     .mutation(async ({ ctx, input }) => {
