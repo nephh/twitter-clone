@@ -8,14 +8,16 @@ import "~/styles/globals.css";
 
 // Attempting to import google font
 //
-// import { Poppins } from "next/font/google";
+import { Inter as FontSans } from "next/font/google";
 
-// export const poppins = Poppins({
-//   weight: ["400", "600"],
-//   subsets: ["latin"],
-//   display: "swap",
-//   variable: "--font-poppins",
-// });
+import { cn } from "~/lib/utils";
+import { Toaster } from "sonner";
+import { ThemeProvider } from "~/components/ThemeProvider";
+
+export const fontSans = FontSans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 const MyApp: AppType = ({ Component, pageProps }: AppProps) => {
   return (
@@ -29,7 +31,22 @@ const MyApp: AppType = ({ Component, pageProps }: AppProps) => {
         },
       }}
     >
-      <Component {...pageProps} />
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="dark"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <div
+          className={cn(
+            "bg-background min-h-screen font-sans antialiased",
+            fontSans.variable,
+          )}
+        >
+          <Component {...pageProps} />
+          <Toaster />
+        </div>
+      </ThemeProvider>
     </ClerkProvider>
   );
 };

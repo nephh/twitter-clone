@@ -1,8 +1,21 @@
-export function Loading() {
+import { Skeleton } from "./ui/skeleton";
+
+export function Loading({ skelly = false }) {
+  if (skelly) {
+    return (
+      <div className="flex items-center space-x-4">
+        <Skeleton className="h-12 w-12 rounded-full" />
+        <div className="space-y-2">
+          <Skeleton className="h-4 w-[250px]" />
+          <Skeleton className="h-4 w-[200px]" />
+        </div>
+      </div>
+    );
+  }
   return (
     <div
       role="status"
-      className="flex h-full w-full items-center justify-center bg-gray-900"
+      className="flex h-full w-full items-center justify-center bg-background"
     >
       <svg
         aria-hidden="true"
