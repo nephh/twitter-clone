@@ -1,12 +1,23 @@
 import { type User, clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
 import {
   createTRPCRouter,
   privateProcedure,
   publicProcedure,
 } from "~/server/api/trpc";
+
+// using upstash to rate limit the create post endpoint. 5 posts per minute.
+//
+const rateLimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(3, "1 m"),
+  timeout: 1000, // 1 second
+  analytics: true,
+});
 
 function filterUserInfo(user: User) {
   return {
@@ -64,8 +75,15 @@ export const postRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      console.log(ctx.currentUser);
       const authorId = ctx.currentUser;
+      const { success } = await rateLimit.limit(authorId);
+
+      if (!success) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Rate limit exceeded",
+        });
+      }
 
       const post = await ctx.db.post.create({
         data: {
