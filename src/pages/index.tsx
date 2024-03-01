@@ -79,9 +79,9 @@ function CreatePostWizard() {
     },
     onError: (error) => {
       console.error(error);
-      toast("Error creating post", {
+      toast("Error creating post!", {
         description:
-          "You're posting too quickly. Please wait one minute and try again.",
+          "You are posting too quickly. Please wait one minute and try again.",
         action: {
           label: "Close",
           onClick: () => toast.dismiss(),
