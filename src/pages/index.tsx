@@ -109,9 +109,21 @@ function CreatePostWizard() {
       onSubmit={(e) => handleSubmit(e)}
     >
       <p className="absolute text-xs text-gray-500">{255 - charCount}</p>
-      <button name="post" className="text-base font-semibold">
-        Post
-      </button>
+      {isLoading ? (
+        <div>
+          <Loading />
+        </div>
+      ) : (
+        <button
+          name="post"
+          className="text-base font-semibold"
+          disabled={isLoading}
+        >
+          Post
+        </button>
+      )}
+      {/* eventually we want this input to be a textarea that will grow vertically
+      instead of infinitely to the right */}
       <input
         type="text"
         name="post"
