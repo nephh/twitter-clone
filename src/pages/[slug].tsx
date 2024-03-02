@@ -9,14 +9,41 @@ import { db } from "~/server/db";
 import superjson from "superjson";
 import type { GetStaticPropsContext, InferGetStaticPropsType } from "next";
 import Post from "~/components/Post";
+import { Loading } from "~/components/Loading";
+import FeedSkelly from "~/components/FeedSkelly";
 
-export function NoPosts() {
+function NoPosts() {
   return (
     <div className="flex h-full flex-col items-center justify-center">
       <p className="scroll-m-20 text-3xl font-semibold tracking-tight first:mt-0">
         No posts yet.
       </p>
     </div>
+  );
+}
+
+function ProfileFeed(props: { username: string }) {
+  const { username } = props;
+  const { data: posts, isLoading } = api.post.userPosts.useQuery({
+    username,
+  });
+
+  if (isLoading) {
+    return <FeedSkelly posts={5} />;
+  }
+
+  if (!posts) {
+    return <ErrorPage />;
+  }
+
+  return posts.length > 0 ? (
+    <div className="flex flex-col overflow-y-scroll">
+      {posts.map(({ post, author }) => (
+        <Post key={post.id} post={post} author={author} />
+      ))}
+    </div>
+  ) : (
+    <NoPosts />
   );
 }
 
@@ -37,10 +64,6 @@ export default function Profile(
     return <NotFound type="User" />;
   }
 
-  if (!posts) {
-    return <ErrorPage />;
-  }
-
   return (
     <>
       <Head>
@@ -59,22 +82,18 @@ export default function Profile(
         <p className="mt-8 text-4xl font-bold">{user.fullName}</p>
         <p className="text-xl font-semibold">@{user.username}</p>
         <div className="mt-4 flex flex-row justify-between gap-4 text-lg font-semibold text-gray-500">
-          <p>
-            {posts.length} Post{posts.length > 1 && "s"}
+          {posts && (
+            <p className="w-full">
+              {posts?.length} Post{posts.length > 1 && "s"}
+            </p>
+          )}
+          <p className="w-full text-end">
+            Joined: {new Date(user.createdAt).toLocaleDateString()}
           </p>
-          <p>Joined: {new Date(user.createdAt).toLocaleDateString()}</p>
         </div>
       </div>
       {/* Feed */}
-      {posts.length > 0 ? (
-        <div className="flex flex-col">
-          {posts.map(({ post, author }) => (
-            <Post key={post.id} post={post} author={author} />
-          ))}
-        </div>
-      ) : (
-        <NoPosts />
-      )}
+      <ProfileFeed username={username} />
     </>
   );
 }
@@ -93,9 +112,9 @@ export async function getStaticProps(context: GetStaticPropsContext) {
     username: username,
   });
 
-  await ssg.post.userPosts.prefetch({
-    username: username,
-  });
+  // await ssg.post.userPosts.prefetch({
+  //   username: username,
+  // });
 
   return {
     props: {
