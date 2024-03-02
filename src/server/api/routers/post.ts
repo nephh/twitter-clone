@@ -131,6 +131,7 @@ export const postRouter = createTRPCRouter({
 
       const post = await ctx.db.post.findUnique({
         where: { id: postId },
+        include: { likedBy: true },
       });
 
       if (!post) {
@@ -140,55 +141,50 @@ export const postRouter = createTRPCRouter({
         });
       }
 
-      const user = await ctx.db.user.findUnique({
-        where: { externalId: userId },
-      });
+      // const user = await ctx.db.user.findUnique({
+      //   where: { externalId: userId },
+      // });
 
-      if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found",
+      // if (!user) {
+      //   throw new TRPCError({
+      //     code: "NOT_FOUND",
+      //     message: "User not found",
+      //   });
+      // }
+
+      // await ctx.db.user.update({
+      //   where: { externalId: userId },
+      //   include: { likedPosts: true },
+      //   data: {
+      //     likedPosts: {
+      //       connect: { id: postId },
+      //     },
+      //   },
+      // });
+
+      const userCheck = post.likedBy.some((user) => user.externalId === userId);
+      console.log(userCheck);
+
+      if (!userCheck) {
+        await ctx.db.post.update({
+          where: { id: postId },
+          include: { likedBy: true },
+          data: {
+            likedBy: {
+              connect: { externalId: userId },
+            },
+          },
         });
-      }
-
-      switch (payload) {
-        case "addLike":
-          await ctx.db.post.update({
-            where: { id: postId },
-            include: { likedBy: true },
-            data: {
-              likedBy: {
-                connect: { id: userId },
-              },
+      } else {
+        await ctx.db.post.update({
+          where: { id: postId },
+          include: { likedBy: true },
+          data: {
+            likedBy: {
+              disconnect: { externalId: userId },
             },
-          });
-
-          await ctx.db.user.update({
-            where: { externalId: userId },
-            include: { likedPosts: true },
-            data: {
-              likedPosts: {
-                connect: { id: postId },
-              },
-            },
-          });
-          break;
-        case "removeLike":
-          await ctx.db.post.update({
-            where: { id: postId },
-            include: { likedBy: true },
-            data: {
-              likedBy: {
-                disconnect: { id: userId },
-              },
-            },
-          });
-          break;
-        default:
-          throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Invalid payload",
-          });
+          },
+        });
       }
     }),
 });
