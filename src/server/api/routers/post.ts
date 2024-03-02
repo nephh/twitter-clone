@@ -48,12 +48,14 @@ export const postRouter = createTRPCRouter({
   getLatest: publicProcedure.query(({ ctx }) => {
     return ctx.db.post.findFirst({
       orderBy: { createdAt: "desc" },
+      include: { likedBy: true },
     });
   }),
 
   getAll: publicProcedure.query(async ({ ctx }) => {
     const posts = await ctx.db.post.findMany({
       orderBy: { createdAt: "desc" },
+      include: { likedBy: true },
     });
 
     if (!posts) {
@@ -83,6 +85,7 @@ export const postRouter = createTRPCRouter({
       const posts = await ctx.db.post.findMany({
         where: { authorId: user.id },
         orderBy: { createdAt: "desc" },
+        include: { likedBy: true },
       });
 
       return addUserToPost(posts);
@@ -124,6 +127,7 @@ export const postRouter = createTRPCRouter({
     .input(z.object({ id: z.string(), payload: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const { id: postId, payload } = input;
+      const userId = ctx.currentUser;
 
       const post = await ctx.db.post.findUnique({
         where: { id: postId },
@@ -136,25 +140,47 @@ export const postRouter = createTRPCRouter({
         });
       }
 
-      let likes = post.likes;
+      const user = await ctx.db.user.findUnique({
+        where: { externalId: userId },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found",
+        });
+      }
+
       switch (payload) {
         case "addLike":
-          ++likes;
-
           await ctx.db.post.update({
             where: { id: postId },
+            include: { likedBy: true },
             data: {
-              likes,
+              likedBy: {
+                connect: { id: userId },
+              },
+            },
+          });
+
+          await ctx.db.user.update({
+            where: { externalId: userId },
+            include: { likedPosts: true },
+            data: {
+              likedPosts: {
+                connect: { id: postId },
+              },
             },
           });
           break;
         case "removeLike":
-          --likes;
-
           await ctx.db.post.update({
             where: { id: postId },
+            include: { likedBy: true },
             data: {
-              likes,
+              likedBy: {
+                disconnect: { id: userId },
+              },
             },
           });
           break;
@@ -163,7 +189,6 @@ export const postRouter = createTRPCRouter({
             code: "BAD_REQUEST",
             message: "Invalid payload",
           });
-          break;
       }
     }),
 });

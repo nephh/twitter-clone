@@ -62,7 +62,7 @@ export default function Post(props: PostWithUser) {
       </Link>
       <div className="flex flex-row items-center justify-between gap-4">
         <button onClick={(e) => handleClick(e, post.id, "addLike")}>
-          Likes: {post.likes}
+          Likes: {post.likedBy.length}
         </button>
       </div>
     </div>
