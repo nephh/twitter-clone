@@ -44,7 +44,7 @@ const MyApp: AppType = ({ Component, pageProps }: AppProps) => {
           )}
         >
           <Component {...pageProps} />
-          <Toaster />
+          <Toaster theme="dark" />
         </div>
       </ThemeProvider>
     </ClerkProvider>

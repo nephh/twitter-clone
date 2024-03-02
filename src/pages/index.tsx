@@ -61,7 +61,6 @@ function CreatePostWizard() {
   const [value, setValue] = useState("");
   const [charCount, setCharCount] = useState(0);
   const ctx = api.useUtils();
-  console.log("hello");
   const { mutate, isLoading } = api.post.create.useMutation({
     onSuccess: () => {
       setValue("");
@@ -71,17 +70,18 @@ function CreatePostWizard() {
       void ctx.post.getAll.invalidate();
       toast("Post created!", {
         description: "Your post has been created successfully.",
-        action: {
+        cancel: {
           label: "Close",
           onClick: () => toast.dismiss(),
         },
       });
     },
-    onError: (error) => {
-      console.error(error);
-      toast("Error creating post!", {
-        description:
-          "You are posting too quickly. Please wait one minute and try again.",
+    onError: (e) => {
+      const error = e.data?.zodError?.fieldErrors.content;
+      toast("Failed to create post!", {
+        description: error
+          ? error
+          : "Too many requests, try again in a few minutes.",
         action: {
           label: "Close",
           onClick: () => toast.dismiss(),
@@ -105,7 +105,7 @@ function CreatePostWizard() {
 
   return (
     <form
-      className="flex flex-row-reverse gap-4 w-full"
+      className="flex w-full flex-row-reverse gap-4"
       onSubmit={(e) => handleSubmit(e)}
     >
       <p className="absolute text-xs text-gray-500">{255 - charCount}</p>
@@ -132,9 +132,9 @@ function Post(props: PostWithUser) {
   const { post, author } = props;
 
   return (
-    <div className="p-6 border-b">
-      <div className="flex flex-row justify-between mb-4">
-        <div className="flex flex-row gap-4 items-center w-full">
+    <div className="border-b p-6">
+      <div className="mb-4 flex flex-row justify-between">
+        <div className="flex w-full flex-row items-center gap-4">
           <Image
             src={author.imageUrl}
             alt="post profile picture"
@@ -143,18 +143,20 @@ function Post(props: PostWithUser) {
             className="rounded-full"
           />
           <div className="flex flex-col">
-            <p className="text-xl font-semibold tracking-tight scroll-m-20">
+            <p className="scroll-m-20 text-xl font-semibold tracking-tight">
               {author.fullName}
             </p>
             <p className="text-sm font-thin">@{author.username}</p>
           </div>
         </div>
         {/* not sure if I want this in the right corner like this or next to the user's name */}
-        <div className="flex justify-end w-full text-sm text-gray-500">
+        <div className="flex w-full justify-end text-sm text-gray-500">
           {dayjs(post.createdAt).fromNow()}
         </div>
       </div>
-      <div className="p-2 text-base font-semibold">{post.content}</div>
+      <div className="whitespace-pre-wrap p-2 text-base font-semibold">
+        {post.content}
+      </div>
     </div>
   );
 }
@@ -166,10 +168,10 @@ function FeedSkelly() {
       {Array.from({ length: skeletonCount }).map((_, index) => (
         <div
           key={index}
-          className="flex flex-col p-6 py-8 space-y-8 w-full border-b"
+          className="flex w-full flex-col space-y-8 border-b p-6 py-8"
         >
           <div className="flex flex-row space-x-4">
-            <Skeleton className="w-12 h-12 rounded-full" />
+            <Skeleton className="h-12 w-12 rounded-full" />
             <div className="space-y-2">
               <Skeleton className="h-4 w-[200px]" />
               <Skeleton className="h-4 w-[150px]" />
@@ -217,8 +219,8 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex justify-center">
-        <div className="flex flex-col w-full h-screen md:max-w-4xl border-x bg-background">
-          <div className="flex flex-row gap-4 justify-center items-center p-4 border-b">
+        <div className="flex h-screen w-full flex-col border-x bg-background md:max-w-4xl">
+          <div className="flex flex-row items-center justify-center gap-4 border-b p-4">
             {isSignedIn ? (
               <CreatePostWizard />
             ) : (
