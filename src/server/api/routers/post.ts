@@ -163,7 +163,6 @@ export const postRouter = createTRPCRouter({
       // });
 
       const userCheck = post.likedBy.some((user) => user.externalId === userId);
-      console.log(userCheck);
 
       if (!userCheck) {
         await ctx.db.post.update({
