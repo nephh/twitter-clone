@@ -1,9 +1,10 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { filterUserInfo } from "~/lib/utils";
+import type { Post } from "@prisma/client";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { filterUserInfo } from "~/lib/utils";
 import {
   createTRPCRouter,
   privateProcedure,
@@ -12,12 +13,36 @@ import {
 
 // using upstash to rate limit the create post endpoint. 5 posts per minute.
 //
-const rateLimit = new Ratelimit({
+export const rateLimit = new Ratelimit({
   redis: Redis.fromEnv(),
   limiter: Ratelimit.slidingWindow(3, "1 m"),
-  timeout: 1000, // 1 second
+  timeout: 1000,
   analytics: true,
 });
+
+async function addUserToPost(posts: Post[]) {
+  const users = (
+    await clerkClient.users.getUserList({
+      userId: posts.map((post) => post.authorId),
+    })
+  ).map(filterUserInfo);
+
+  return posts.map((post) => {
+    const author = users.find((user) => user.id === post.authorId);
+
+    if (!author) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Author not found",
+      });
+    }
+
+    return {
+      post,
+      author,
+    };
+  });
+}
 
 export const postRouter = createTRPCRouter({
   getLatest: publicProcedure.query(({ ctx }) => {
@@ -31,29 +56,37 @@ export const postRouter = createTRPCRouter({
       orderBy: { createdAt: "desc" },
     });
 
-    // Fetch user info for each post.
-    const users = (
-      await clerkClient.users.getUserList({
-        userId: posts.map((post) => post.authorId),
-      })
-    ).map(filterUserInfo);
+    if (!posts) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "No posts found",
+      });
+    }
 
-    return posts.map((post) => {
-      const author = users.find((user) => user.id === post.authorId);
+    return addUserToPost(posts);
+  }),
 
-      if (!author) {
+  userPosts: publicProcedure
+    .input(z.object({ username: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const [user] = await clerkClient.users.getUserList({
+        username: [input.username],
+      });
+
+      if (!user) {
         throw new TRPCError({
           code: "NOT_FOUND",
-          message: "Author not found",
+          message: "User not found",
         });
       }
 
-      return {
-        post,
-        author,
-      };
-    });
-  }),
+      const posts = await ctx.db.post.findMany({
+        where: { authorId: user.id },
+        orderBy: { createdAt: "desc" },
+      });
+
+      return addUserToPost(posts);
+    }),
 
   create: privateProcedure
     .input(

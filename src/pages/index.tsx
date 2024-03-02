@@ -115,7 +115,7 @@ function CreatePostWizard() {
         type="text"
         name="post"
         placeholder="Type something..."
-        className={`grow bg-transparent text-2xl font-semibold placeholder-zinc-600 outline-none ${!value && "italic"}`}
+        className={`grow bg-transparent text-2xl font-semibold placeholder-gray-500 outline-none ${!value && "italic"}`}
         value={value}
         onChange={(e) => handleChange(e)}
         disabled={isLoading}

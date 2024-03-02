@@ -16,5 +16,6 @@ export function filterUserInfo(user: User) {
       user.firstName && user.lastName
         ? `${user.firstName} ${user.lastName}`
         : user.username,
+    createdAt: user.createdAt,
   };
 }

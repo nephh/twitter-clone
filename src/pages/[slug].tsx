@@ -1,6 +1,5 @@
 import Head from "next/head";
-import { useRouter } from "next/router";
-import { LoadingPage } from "~/components/Loading";
+import Image from "next/image";
 import NotFound from "~/components/NotFound";
 import ErrorPage from "~/components/ErrorPage";
 import { api } from "~/utils/api";
@@ -11,6 +10,16 @@ import superjson from "superjson";
 import type { GetStaticPropsContext, InferGetStaticPropsType } from "next";
 import Post from "~/components/Post";
 
+export function NoPosts() {
+  return (
+    <div className="flex h-full flex-col items-center justify-center">
+      <p className="scroll-m-20 text-3xl font-semibold tracking-tight first:mt-0">
+        No posts yet.
+      </p>
+    </div>
+  );
+}
+
 export default function Profile(
   props: InferGetStaticPropsType<typeof getStaticProps>,
 ) {
@@ -20,7 +29,7 @@ export default function Profile(
     username,
   });
 
-  const { data: posts } = api.profile.userPosts.useQuery({
+  const { data: posts } = api.post.userPosts.useQuery({
     username,
   });
 
@@ -37,21 +46,34 @@ export default function Profile(
       <Head>
         <title>{user.username}</title>
       </Head>
-      <div className="flex flex-row items-center justify-center gap-4 border-b p-4">
-        <p className="text-5xl font-bold">{user.username}</p>
+      <div className="relative h-48 w-full bg-gray-700">
+        <Image
+          src={user.imageUrl}
+          alt="Profile Picture"
+          width={140}
+          height={140}
+          className="absolute bottom-0 left-6 -mb-12 rounded-full border-4 border-zinc-950"
+        />
       </div>
+      <div className="border-b p-6">
+        <p className="mt-8 text-4xl font-bold">{user.fullName}</p>
+        <p className="text-xl font-semibold">@{user.username}</p>
+        <div className="mt-4 flex flex-row justify-between gap-4 text-lg font-semibold text-gray-500">
+          <p>
+            {posts.length} Post{posts.length > 1 && "s"}
+          </p>
+          <p>Joined: {new Date(user.createdAt).toLocaleDateString()}</p>
+        </div>
+      </div>
+      {/* Feed */}
       {posts.length > 0 ? (
         <div className="flex flex-col">
-          {posts.map((post) => (
-            <Post key={post.id} post={post} author={user} />
+          {posts.map(({ post, author }) => (
+            <Post key={post.id} post={post} author={author} />
           ))}
         </div>
       ) : (
-        <div className="flex h-full flex-col items-center justify-center">
-          <p className="scroll-m-20 text-3xl font-semibold tracking-tight first:mt-0">
-            No posts yet.
-          </p>
-        </div>
+        <NoPosts />
       )}
     </>
   );
@@ -71,7 +93,7 @@ export async function getStaticProps(context: GetStaticPropsContext) {
     username: username,
   });
 
-  await ssg.profile.userPosts.prefetch({
+  await ssg.post.userPosts.prefetch({
     username: username,
   });
 
