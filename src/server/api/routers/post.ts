@@ -119,4 +119,51 @@ export const postRouter = createTRPCRouter({
 
       return post;
     }),
+
+  addLike: privateProcedure
+    .input(z.object({ id: z.string(), payload: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { id: postId, payload } = input;
+
+      const post = await ctx.db.post.findUnique({
+        where: { id: postId },
+      });
+
+      if (!post) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Post not found",
+        });
+      }
+
+      let likes = post.likes;
+      switch (payload) {
+        case "addLike":
+          ++likes;
+
+          await ctx.db.post.update({
+            where: { id: postId },
+            data: {
+              likes,
+            },
+          });
+          break;
+        case "removeLike":
+          --likes;
+
+          await ctx.db.post.update({
+            where: { id: postId },
+            data: {
+              likes,
+            },
+          });
+          break;
+        default:
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Invalid payload",
+          });
+          break;
+      }
+    }),
 });

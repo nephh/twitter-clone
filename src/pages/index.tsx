@@ -4,7 +4,6 @@ import Image from "next/image";
 import { Loading, LoadingPage } from "~/components/Loading";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Skeleton } from "~/components/ui/skeleton";
 import Post from "~/components/Post";
 import ErrorPage from "~/components/ErrorPage";
 import FeedSkelly from "~/components/FeedSkelly";
