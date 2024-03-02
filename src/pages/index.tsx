@@ -68,24 +68,23 @@ function CreatePostWizard() {
       // void means we don't care about waiting for this to finish, no need for async/await
       //
       void ctx.post.getAll.invalidate();
-      toast("Post created!", {
-        description: "Your post has been created successfully.",
-        action: {
-          label: "Close",
-          onClick: () => toast.dismiss(),
-        },
+      toast.success("Your post has been created successfully.", {
+        // action: {
+        //   label: "Close",
+        //   onClick: () => toast.dismiss(),
+        // },
       });
     },
     onError: (e) => {
       const error = e.data?.zodError?.fieldErrors.content;
-      toast("Failed to create post!", {
+      toast.error("Failed to create post!", {
         description: error
           ? error
           : "Too many requests, try again in a few minutes.",
-        action: {
-          label: "Close",
-          onClick: () => toast.dismiss(),
-        },
+        // action: {
+        //   label: "Close",
+        //   onClick: () => toast.dismiss(),
+        // },
       });
     },
   });
@@ -128,7 +127,7 @@ function CreatePostWizard() {
         type="text"
         name="post"
         placeholder="Type something..."
-        className={`grow bg-transparent outline-none ${!value && "italic"}`}
+        className={`grow bg-transparent text-2xl font-semibold placeholder-zinc-600 outline-none ${!value && "italic"}`}
         value={value}
         onChange={(e) => handleChange(e)}
         disabled={isLoading}
@@ -147,19 +146,23 @@ function Post(props: PostWithUser) {
     <div className="border-b p-6">
       <div className="mb-4 flex flex-row justify-between">
         <div className="flex w-full flex-row items-center gap-4">
-          <Image
-            src={author.imageUrl}
-            alt="post profile picture"
-            width={50}
-            height={50}
-            className="rounded-full"
-          />
-          <div className="flex flex-col">
-            <p className="scroll-m-20 text-xl font-semibold tracking-tight">
-              {author.fullName}
-            </p>
-            <p className="text-sm font-thin">@{author.username}</p>
-          </div>
+          <Link href={`/@${author.username}`}>
+            <Image
+              src={author.imageUrl}
+              alt="post profile picture"
+              width={50}
+              height={50}
+              className="rounded-full"
+            />
+          </Link>
+          <Link href={`/@${author.username}`}>
+            <div className="flex flex-col">
+              <p className="scroll-m-20 text-xl font-semibold tracking-tight">
+                {author.fullName}
+              </p>
+              <p className="text-sm font-thin">@{author.username}</p>
+            </div>
+          </Link>
         </div>
         {/* not sure if I want this in the right corner like this or next to the user's name */}
         <div className="flex w-full justify-end text-sm text-gray-500">
