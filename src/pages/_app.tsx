@@ -1,6 +1,7 @@
 import type { AppProps, AppType } from "next/app";
 import { ClerkProvider } from "@clerk/nextjs";
 import { dark } from "@clerk/themes";
+import Head from "next/head";
 
 import { api } from "~/utils/api";
 
@@ -43,6 +44,11 @@ const MyApp: AppType = ({ Component, pageProps }: AppProps) => {
             fontSans.variable,
           )}
         >
+          <Head>
+            <title>Tweeter</title>
+            <meta name="description" content="tweet something fun" />
+            <link rel="icon" href="/favicon.ico" />
+          </Head>
           <Component {...pageProps} />
           <Toaster theme="dark" />
         </div>
