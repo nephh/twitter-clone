@@ -40,7 +40,7 @@ export function Loading({ skelly = false }) {
 
 export function LoadingPage() {
   return (
-    <div className="absolute left-0 top-0 flex h-screen w-screen items-center justify-center bg-gray-900">
+    <div className="absolute left-0 top-0 flex h-screen w-screen items-center justify-center">
       <Loading />
     </div>
   );

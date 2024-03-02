@@ -70,7 +70,7 @@ function CreatePostWizard() {
       void ctx.post.getAll.invalidate();
       toast("Post created!", {
         description: "Your post has been created successfully.",
-        cancel: {
+        action: {
           label: "Close",
           onClick: () => toast.dismiss(),
         },
@@ -219,7 +219,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex justify-center">
-        <div className="flex h-screen w-full flex-col border-x bg-background md:max-w-4xl">
+        <div className="flex h-screen w-full flex-col border-x md:max-w-4xl">
           <div className="flex flex-row items-center justify-center gap-4 border-b p-4">
             {isSignedIn ? (
               <CreatePostWizard />
