@@ -50,8 +50,8 @@ export const createTRPCContext = (opts: CreateNextContextOptions) => {
   // remember that this is the clerk userId
   const { req } = opts;
   const session = getAuth(req);
-
   const user = session.userId;
+
   return {
     db,
     currentUser: user,

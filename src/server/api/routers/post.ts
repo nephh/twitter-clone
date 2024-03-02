@@ -1,9 +1,9 @@
-import { type User, clerkClient } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-
+import { filterUserInfo } from "~/lib/utils";
 import {
   createTRPCRouter,
   privateProcedure,
@@ -18,19 +18,6 @@ const rateLimit = new Ratelimit({
   timeout: 1000, // 1 second
   analytics: true,
 });
-
-function filterUserInfo(user: User) {
-  return {
-    id: user.id,
-    email: user.primaryEmailAddressId,
-    username: user.username,
-    imageUrl: user.imageUrl,
-    fullName:
-      user.firstName && user.lastName
-        ? `${user.firstName} ${user.lastName}`
-        : user.username,
-  };
-}
 
 export const postRouter = createTRPCRouter({
   getLatest: publicProcedure.query(({ ctx }) => {

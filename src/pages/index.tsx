@@ -1,24 +1,12 @@
-import Head from "next/head";
-import Link from "next/link";
-import {
-  UserButton,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  useUser,
-} from "@clerk/nextjs";
-
-import { type RouterOutputs, api } from "~/utils/api";
+import { UserButton, SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
+import { api } from "~/utils/api";
 import Image from "next/image";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 import { Loading, LoadingPage } from "~/components/Loading";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Skeleton } from "~/components/ui/skeleton";
-
-dayjs.extend(relativeTime);
+import Post from "~/components/Post";
+import ErrorPage from "~/components/ErrorPage";
 
 // The UserButton we are using can take a second to load in, so we use an image in the same place
 // that will be replaced by the UserButton once it is loaded in. Looks a bit cleaner, but obviously is a bit inefficient.
@@ -137,45 +125,6 @@ function CreatePostWizard() {
   );
 }
 
-type PostWithUser = RouterOutputs["post"]["getAll"][number];
-
-function Post(props: PostWithUser) {
-  const { post, author } = props;
-
-  return (
-    <div className="border-b p-6">
-      <div className="mb-4 flex flex-row justify-between">
-        <div className="flex w-full flex-row items-center gap-4">
-          <Link href={`/@${author.username}`}>
-            <Image
-              src={author.imageUrl}
-              alt="post profile picture"
-              width={50}
-              height={50}
-              className="rounded-full"
-            />
-          </Link>
-          <Link href={`/@${author.username}`}>
-            <div className="flex flex-col">
-              <p className="scroll-m-20 text-xl font-semibold tracking-tight">
-                {author.fullName}
-              </p>
-              <p className="text-sm font-thin">@{author.username}</p>
-            </div>
-          </Link>
-        </div>
-        {/* not sure if I want this in the right corner like this or next to the user's name */}
-        <div className="flex w-full justify-end text-sm text-gray-500">
-          {dayjs(post.createdAt).fromNow()}
-        </div>
-      </div>
-      <div className="whitespace-pre-wrap p-2 text-base font-semibold">
-        {post.content}
-      </div>
-    </div>
-  );
-}
-
 function FeedSkelly() {
   const skeletonCount = 5; // Change this to the desired number of skeletons
   return (
@@ -200,19 +149,19 @@ function FeedSkelly() {
 }
 
 function PostFeed() {
-  const { data, isLoading } = api.post.getAll.useQuery();
+  const { data: posts, isLoading } = api.post.getAll.useQuery();
 
   if (isLoading) {
     return <FeedSkelly />;
   }
 
-  if (!data) {
-    return <div>Something went wrong :(</div>;
+  if (!posts) {
+    return <ErrorPage />;
   }
 
   return (
     <div className="flex flex-col">
-      {data.map(({ post, author }) => (
+      {posts.map(({ post, author }) => (
         <Post key={post.id} post={post} author={author} />
       ))}
     </div>
@@ -228,22 +177,17 @@ export default function Home() {
 
   return (
     <>
-
-      <main className="flex justify-center">
-        <div className="flex h-screen w-full flex-col border-x md:max-w-4xl">
-          <div className="flex flex-row items-center justify-center gap-4 border-b p-4">
-            {isSignedIn ? (
-              <CreatePostWizard />
-            ) : (
-              <div>
-                <SignInButton />
-                <SignUpButton />
-              </div>
-            )}
+      <div className="flex flex-row items-center justify-center gap-4 border-b p-4">
+        {isSignedIn ? (
+          <CreatePostWizard />
+        ) : (
+          <div>
+            <SignInButton />
+            <SignUpButton />
           </div>
-          <PostFeed />
-        </div>
-      </main>
+        )}
+      </div>
+      <PostFeed />
     </>
   );
 }

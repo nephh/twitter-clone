@@ -14,6 +14,7 @@ import { Inter as FontSans } from "next/font/google";
 import { cn } from "~/lib/utils";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "~/components/ThemeProvider";
+import Layout from "./Layout";
 
 export const fontSans = FontSans({
   subsets: ["latin"],
@@ -38,18 +39,20 @@ const MyApp: AppType = ({ Component, pageProps }: AppProps) => {
         enableSystem
         disableTransitionOnChange
       >
+        <Head>
+          <title>Tweeter</title>
+          <meta name="description" content="tweet something fun" />
+          <link rel="icon" href="/favicon.ico" />
+        </Head>
         <div
           className={cn(
             "min-h-screen font-sans antialiased",
             fontSans.variable,
           )}
         >
-          <Head>
-            <title>Tweeter</title>
-            <meta name="description" content="tweet something fun" />
-            <link rel="icon" href="/favicon.ico" />
-          </Head>
-          <Component {...pageProps} />
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
           <Toaster theme="dark" />
         </div>
       </ThemeProvider>
