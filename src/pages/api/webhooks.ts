@@ -3,6 +3,8 @@ import type { WebhookEvent } from "@clerk/nextjs/server";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { buffer } from "micro";
 import { db } from "~/server/db";
+import { api } from "~/utils/api";
+import { TRPCClientError } from "@trpc/client";
 
 export const config = {
   api: {
@@ -57,21 +59,20 @@ export default async function handler(
     return res.status(400).json({ Error: err });
   }
 
-  // Get the ID and type
-  const { id } = evt.data;
   const eventType = evt.type;
 
-  console.log(`Webhook with and ID of ${id} and type of ${eventType}`);
   if (eventType === "user.created" || eventType === "user.updated") {
     const { id, ...attributes } = evt.data;
 
-    await db.user.create({
-      data: {
-        externalId: id,
-        attributes: {
-          first_name: attributes.first_name,
-        },
-      },
+    const { mutate } = api.user.createUser.useMutation();
+
+    if (!attributes.username) {
+      throw new TRPCClientError("No username given");
+    }
+
+    mutate({
+      id,
+      username: attributes.username,
     });
   }
 

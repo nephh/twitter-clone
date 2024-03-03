@@ -9,7 +9,6 @@ import { db } from "~/server/db";
 import superjson from "superjson";
 import type { GetStaticPropsContext, InferGetStaticPropsType } from "next";
 import Post from "~/components/Post";
-import { Loading } from "~/components/Loading";
 import FeedSkelly from "~/components/FeedSkelly";
 
 function NoPosts() {
@@ -52,7 +51,7 @@ export default function Profile(
 ) {
   const { username } = props;
 
-  const { data: user } = api.profile.getUser.useQuery({
+  const { data: user } = api.user.getUser.useQuery({
     username,
   });
 
