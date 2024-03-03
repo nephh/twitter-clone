@@ -5,6 +5,7 @@ import { api } from "~/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useUser } from "@clerk/clerk-react";
+import { useEffect, useState } from "react";
 
 dayjs.extend(relativeTime);
 
@@ -13,6 +14,7 @@ type PostWithUser = RouterOutputs["post"]["getAll"][number];
 export default function Post(props: PostWithUser) {
   const clerk = useUser();
   const { user: currentUser } = clerk;
+  const [isLikedByUser, setIsLikedByUser] = useState(false);
   const ctx = api.useUtils();
   const { post, author } = props;
   const { mutate, isLoading } = api.post.addLike.useMutation({
@@ -22,12 +24,13 @@ export default function Post(props: PostWithUser) {
     },
   });
 
-  // I have no idea why eslint sucks so bad but this is completely fine.
-  // Next is to add some state so that when we like a post it is instant for the user. Maybe display a 
-  // little heart or not.
-  const isLikedByUser = post.likedBy.some(
-    (user) => user.externalId === currentUser.id,
-  );
+  useEffect(() => {
+    const userCheck = post.likedBy.some(
+      (user: { externalId: string | undefined }) =>
+        user.externalId === currentUser?.id,
+    );
+    setIsLikedByUser(userCheck);
+  }, [post.likedBy, currentUser?.id]);
 
   async function handleClick(
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
@@ -35,6 +38,7 @@ export default function Post(props: PostWithUser) {
     payload: "addLike" | "removeLike",
   ) {
     e.preventDefault();
+    setIsLikedByUser(!isLikedByUser);
     mutate({ id, payload });
   }
 

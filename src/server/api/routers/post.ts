@@ -2,7 +2,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { filterUserInfo } from "~/lib/utils";
-import type { Post } from "@prisma/client";
+import type { Post, User } from "@prisma/client";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import {
@@ -20,7 +20,9 @@ export const rateLimit = new Ratelimit({
   analytics: true,
 });
 
-async function addUserToPost(posts: Post[]) {
+export type PostWithLikes = Post & { likedBy: User[] };
+
+async function addUserToPost(posts: PostWithLikes[]) {
   const users = (
     await clerkClient.users.getUserList({
       userId: posts.map((post) => post.authorId),
