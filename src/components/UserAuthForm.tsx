@@ -7,13 +7,13 @@ import { Icons } from "~/components/ui/icons";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
-import { useClerk } from "@clerk/nextjs";
+import { useSignUp } from "@clerk/nextjs";
 
 type UserAuthFormProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function UserAuthForm({ className, ...props }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
-  const { isLoaded, signUp } = useClerk();
+  const { isLoaded, signUp } = useSignUp();
 
   async function onSubmit(event: React.SyntheticEvent) {
     event.preventDefault();
