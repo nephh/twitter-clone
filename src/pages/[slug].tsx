@@ -107,7 +107,7 @@ export async function getStaticProps(context: GetStaticPropsContext) {
   const slug = context.params?.slug as string;
   const username = slug.toString().substring(1);
 
-  await ssg.profile.getUser.prefetch({
+  await ssg.user.getUser.prefetch({
     username: username,
   });
 
