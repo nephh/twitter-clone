@@ -90,11 +90,11 @@ export default function Post(props: PostWithUser) {
           {!isLikedByUser ? (
             <Icons.emptyHeart className="h-5 w-5" />
           ) : (
-            <Icons.heart className="h-5 w-5" color="#611623" />
+            <Icons.heart className="h-5 w-5" color="#ef4444" />
           )}
           {postLikes}
         </button>
-        {isLikedByUser && <div> You liked this post! </div>}
+        <Icons.menu className="h-5 w-5" />
       </div>
     </div>
   );
