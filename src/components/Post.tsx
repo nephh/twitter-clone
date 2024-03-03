@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useUser } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
+import { Icons } from "./ui/icons";
 
 dayjs.extend(relativeTime);
 
@@ -15,6 +16,7 @@ export default function Post(props: PostWithUser) {
   const clerk = useUser();
   const { user: currentUser } = clerk;
   const [isLikedByUser, setIsLikedByUser] = useState(false);
+  const [postLikes, setPostLikes] = useState(props.post.likedBy.length);
   const ctx = api.useUtils();
   const { post, author } = props;
   const { mutate, isLoading } = api.post.addLike.useMutation({
@@ -38,6 +40,11 @@ export default function Post(props: PostWithUser) {
     payload: "addLike" | "removeLike",
   ) {
     e.preventDefault();
+    if (isLikedByUser) {
+      setPostLikes(postLikes - 1);
+    } else {
+      setPostLikes(postLikes + 1);
+    }
     setIsLikedByUser(!isLikedByUser);
     mutate({ id, payload });
   }
@@ -70,13 +77,22 @@ export default function Post(props: PostWithUser) {
         </div>
       </div>
       <Link href={`/post/${post.id}`}>
-        <div className="whitespace-pre-wrap p-2 text-base font-semibold">
+        <div className="mb-4 whitespace-pre-wrap p-2 text-base font-semibold">
           {post.content}
         </div>
       </Link>
-      <div className="flex flex-row items-center justify-between gap-4">
-        <button onClick={(e) => handleClick(e, post.id, "addLike")}>
-          Likes: {post.likedBy.length}
+      <div className="flex w-full flex-row items-center justify-between gap-4">
+        <button
+          onClick={(e) => handleClick(e, post.id, "addLike")}
+          disabled={isLoading}
+          className="flex flex-row items-center justify-center gap-1"
+        >
+          {!isLikedByUser ? (
+            <Icons.emptyHeart className="h-5 w-5" />
+          ) : (
+            <Icons.heart className="h-5 w-5" color="#611623" />
+          )}
+          {postLikes}
         </button>
         {isLikedByUser && <div> You liked this post! </div>}
       </div>
