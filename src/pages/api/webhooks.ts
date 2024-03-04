@@ -2,8 +2,6 @@ import { Webhook } from "svix";
 import type { WebhookEvent } from "@clerk/nextjs/server";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { buffer } from "micro";
-import { api } from "~/utils/api";
-import { TRPCClientError } from "@trpc/client";
 import { db } from "~/server/db";
 
 export const config = {
@@ -60,7 +58,7 @@ export default async function handler(
 
   const eventType = evt.type;
 
-  if (eventType === "user.created" || eventType === "user.updated") {
+  if (eventType === "user.created") {
     const { id, ...attributes } = evt.data;
 
     await db.user.upsert({
@@ -84,34 +82,21 @@ export default async function handler(
     // user's likedPosts array
     const { id } = evt.data;
 
-    await db.user.delete({
-      where: {
-        externalId: id,
-      },
-    });
-
-    await db.post.deleteMany({
-      where: {
-        authorId: id,
-      },
-    });
-
     const posts = await db.post.findMany({
+      include: { likedBy: true },
       where: {
         likedBy: {
           some: {
-            id,
+            externalId: id,
           },
         },
-      },
-      select: {
-        id: true,
       },
     });
 
     for (const post of posts) {
       await db.post.update({
         where: { id: post.id },
+        include: { likedBy: true },
         data: {
           likedBy: {
             disconnect: {
@@ -121,6 +106,18 @@ export default async function handler(
         },
       });
     }
+
+    await db.post.deleteMany({
+      where: {
+        authorId: id,
+      },
+    });
+
+    await db.user.delete({
+      where: {
+        externalId: id,
+      },
+    });
   }
 
   return res.status(200).json({ response: "Success" });

@@ -166,5 +166,17 @@ export const postRouter = createTRPCRouter({
           },
         });
       }
+
+      const likedPosts = await ctx.db.post.findMany({
+        where: {
+          likedBy: {
+            some: {
+              externalId: userId,
+            },
+          },
+        },
+        include: { likedBy: true },
+      });
+      console.log(likedPosts);
     }),
 });
