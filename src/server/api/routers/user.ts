@@ -3,7 +3,6 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { filterUserInfo } from "~/lib/utils";
-import { db } from "~/server/db";
 
 export const userRouter = createTRPCRouter({
   getUser: publicProcedure
@@ -24,26 +23,5 @@ export const userRouter = createTRPCRouter({
       }
 
       return filterUserInfo(user);
-    }),
-
-  createUser: publicProcedure
-    .input(z.object({ id: z.string(), username: z.string() }))
-    .mutation(async ({ input }) => {
-      await db.user.upsert({
-        where: {
-          externalId: input.id,
-        },
-        update: {
-          attributes: {
-            username: input.username,
-          },
-        },
-        create: {
-          externalId: input.id,
-          attributes: {
-            username: input.username,
-          },
-        },
-      });
     }),
 });

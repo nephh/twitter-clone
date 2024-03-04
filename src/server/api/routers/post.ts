@@ -143,27 +143,6 @@ export const postRouter = createTRPCRouter({
         });
       }
 
-      // const user = await ctx.db.user.findUnique({
-      //   where: { externalId: userId },
-      // });
-
-      // if (!user) {
-      //   throw new TRPCError({
-      //     code: "NOT_FOUND",
-      //     message: "User not found",
-      //   });
-      // }
-
-      // await ctx.db.user.update({
-      //   where: { externalId: userId },
-      //   include: { likedPosts: true },
-      //   data: {
-      //     likedPosts: {
-      //       connect: { id: postId },
-      //     },
-      //   },
-      // });
-
       const userCheck = post.likedBy.some((user) => user.externalId === userId);
 
       if (!userCheck) {

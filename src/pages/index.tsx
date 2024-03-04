@@ -56,12 +56,7 @@ function CreatePostWizard() {
       // void means we don't care about waiting for this to finish, no need for async/await
       //
       void ctx.post.getAll.invalidate();
-      toast.success("Your post has been created successfully.", {
-        // action: {
-        //   label: "Close",
-        //   onClick: () => toast.dismiss(),
-        // },
-      });
+      toast.success("Your post has been created successfully.");
     },
     onError: (e) => {
       const error = e.data?.zodError?.fieldErrors.content;
@@ -69,10 +64,6 @@ function CreatePostWizard() {
         description: error
           ? error
           : "Too many requests, try again in a few minutes.",
-        // action: {
-        //   label: "Close",
-        //   onClick: () => toast.dismiss(),
-        // },
       });
     },
   });

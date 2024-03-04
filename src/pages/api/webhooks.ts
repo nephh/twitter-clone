@@ -2,9 +2,9 @@ import { Webhook } from "svix";
 import type { WebhookEvent } from "@clerk/nextjs/server";
 import type { NextApiRequest, NextApiResponse } from "next";
 import { buffer } from "micro";
-import { db } from "~/server/db";
 import { api } from "~/utils/api";
 import { TRPCClientError } from "@trpc/client";
+import { db } from "~/server/db";
 
 export const config = {
   api: {
@@ -38,7 +38,6 @@ export default async function handler(
     return res.status(400).json({ error: "Error occured -- no svix headers" });
   }
 
-  console.log("headers", req.headers, svix_id, svix_signature, svix_timestamp);
   // Get the body
   const body = (await buffer(req)).toString();
 
@@ -64,16 +63,64 @@ export default async function handler(
   if (eventType === "user.created" || eventType === "user.updated") {
     const { id, ...attributes } = evt.data;
 
-    const { mutate } = api.user.createUser.useMutation();
-
-    if (!attributes.username) {
-      throw new TRPCClientError("No username given");
-    }
-
-    mutate({
-      id,
-      username: attributes.username,
+    await db.user.upsert({
+      where: {
+        externalId: id,
+      },
+      update: {
+        attributes: {
+          username: attributes.username,
+        },
+      },
+      create: {
+        externalId: id,
+        attributes: {
+          username: attributes.username,
+        },
+      },
     });
+  } else if (eventType === "user.deleted") {
+    // deleted user's posts are not removed from other
+    // user's likedPosts array
+    const { id } = evt.data;
+
+    await db.user.delete({
+      where: {
+        externalId: id,
+      },
+    });
+
+    await db.post.deleteMany({
+      where: {
+        authorId: id,
+      },
+    });
+
+    const posts = await db.post.findMany({
+      where: {
+        likedBy: {
+          some: {
+            id,
+          },
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    for (const post of posts) {
+      await db.post.update({
+        where: { id: post.id },
+        data: {
+          likedBy: {
+            disconnect: {
+              externalId: id,
+            },
+          },
+        },
+      });
+    }
   }
 
   return res.status(200).json({ response: "Success" });
