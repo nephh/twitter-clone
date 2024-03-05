@@ -60,7 +60,7 @@ export default function Profile(
   });
 
   if (!user) {
-    return <NotFound type="User" />;
+    return <NotFound type="Page" />;
   }
 
   return (

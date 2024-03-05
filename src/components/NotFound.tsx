@@ -1,4 +1,4 @@
-export default function NotFound({ type = "User" }) {
+export default function NotFound({ type = "Page" }) {
   return (
     <div className="flex h-screen flex-col items-center justify-center gap-2">
       <h1 className="scroll-m-20 text-4xl font-bold tracking-tight lg:text-5xl">

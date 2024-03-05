@@ -1,4 +1,4 @@
-import { UserButton, SignInButton, SignUpButton, useUser } from "@clerk/nextjs";
+import { UserButton, useUser } from "@clerk/nextjs";
 import { api } from "~/utils/api";
 import Image from "next/image";
 import { Loading, LoadingPage } from "~/components/Loading";
@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import Post from "~/components/Post";
 import ErrorPage from "~/components/ErrorPage";
 import FeedSkelly from "~/components/FeedSkelly";
+import { Button } from "~/components/ui/button";
+import { useRouter } from "next/router";
 
 // The UserButton we are using can take a second to load in, so we use an image in the same place
 // that will be replaced by the UserButton once it is loaded in. Looks a bit cleaner, but obviously is a bit inefficient.
@@ -138,6 +140,7 @@ function PostFeed() {
 
 export default function Home() {
   const { isSignedIn, isLoaded } = useUser();
+  const { push } = useRouter();
 
   if (!isLoaded) {
     return <LoadingPage />;
@@ -150,8 +153,8 @@ export default function Home() {
           <CreatePostWizard />
         ) : (
           <div>
-            <SignInButton />
-            <SignUpButton />
+            <Button onClick={async () => await push("/login")}>Login</Button>
+            <Button onClick={async () => await push("/signup")}>Signup</Button>
           </div>
         )}
       </div>
