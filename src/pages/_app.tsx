@@ -15,6 +15,7 @@ import { cn } from "~/lib/utils";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "~/components/ThemeProvider";
 import Layout from "./Layout";
+import { Sidebar } from "~/components/Sidebar";
 
 export const fontSans = FontSans({
   subsets: ["latin"],
@@ -46,12 +47,15 @@ const MyApp: AppType = ({ Component, pageProps }: AppProps) => {
         </Head>
         <div
           className={cn(
-            "min-h-screen font-sans antialiased",
+            "flex min-h-screen w-screen flex-row justify-center font-sans antialiased",
             fontSans.variable,
           )}
         >
           <Layout>
-            <Component {...pageProps} />
+            <Sidebar />
+            <div className="flex h-screen w-full flex-col border-x md:max-w-4xl">
+              <Component {...pageProps} />
+            </div>
           </Layout>
           <Toaster theme="dark" />
         </div>
