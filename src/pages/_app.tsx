@@ -53,7 +53,7 @@ const MyApp: AppType = ({ Component, pageProps }: AppProps) => {
         >
           <Layout>
             <Sidebar />
-            <div className="flex h-screen w-full flex-col border-x md:max-w-4xl">
+            <div className="flex h-screen w-full flex-col">
               <Component {...pageProps} />
             </div>
           </Layout>

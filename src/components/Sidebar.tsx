@@ -15,7 +15,7 @@ export function Sidebar({ className }: SidebarProps) {
   }
 
   return (
-    <div className={cn("hidden border-l pb-12 md:flex", className)}>
+    <div className={cn("hidden border-r pb-12 md:flex", className)}>
       <div className="space-y-4 py-4">
         <div className="flex h-full flex-col justify-between px-3 py-2">
           <div>
