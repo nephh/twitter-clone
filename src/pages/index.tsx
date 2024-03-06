@@ -130,7 +130,7 @@ function PostFeed() {
   }
 
   return (
-    <div className="flex grow flex-col overflow-y-scroll">
+    <div className="flex w-full grow flex-col overflow-y-auto">
       {posts.map(({ post, author }) => (
         <Post key={post.id} post={post} author={author} />
       ))}

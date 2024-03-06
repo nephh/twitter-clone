@@ -7,14 +7,14 @@ import relativeTime from "dayjs/plugin/relativeTime";
 import { useUser } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
 import { Icons } from "./ui/icons";
+import { toast } from "sonner";
 
 dayjs.extend(relativeTime);
 
 type PostWithUser = RouterOutputs["post"]["getAll"][number];
 
 export default function Post(props: PostWithUser) {
-  const clerk = useUser();
-  const { user: currentUser } = clerk;
+  const { user: currentUser, isSignedIn } = useUser();
   const [isLikedByUser, setIsLikedByUser] = useState(false);
   const [postLikes, setPostLikes] = useState(props.post.likedBy.length);
   const ctx = api.useUtils();
@@ -40,6 +40,10 @@ export default function Post(props: PostWithUser) {
     payload: "addLike" | "removeLike",
   ) {
     e.preventDefault();
+    if (!isSignedIn) {
+      toast.error("You must be signed in to like a post");
+      return;
+    }
     if (isLikedByUser) {
       setPostLikes(postLikes - 1);
     } else {

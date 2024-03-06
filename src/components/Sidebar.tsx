@@ -2,12 +2,20 @@ import { cn } from "~/lib/utils";
 import { Button } from "~/components/ui/button";
 import { Icons } from "./ui/icons";
 import { UserNav } from "./UserNav";
+import { useRouter } from "next/router";
+import { SignOutButton } from "@clerk/nextjs";
 
 type SidebarProps = React.HTMLAttributes<HTMLDivElement>;
 
 export function Sidebar({ className }: SidebarProps) {
+  const router = useRouter();
+
+  if (router.pathname === "/signup" || router.pathname === "/login") {
+    return null;
+  }
+
   return (
-    <div className={cn("hidden pb-12 md:flex", className)}>
+    <div className={cn("hidden border-l pb-12 md:flex", className)}>
       <div className="space-y-4 py-4">
         <div className="flex h-full flex-col justify-between px-3 py-2">
           <div>
@@ -26,25 +34,15 @@ export function Sidebar({ className }: SidebarProps) {
                 <Icons.person className="mr-2 h-4 w-4" />
                 Users
               </Button>
-              <Button variant="ghost" className="w-full justify-start text-lg">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="mr-2 h-4 w-4"
+              <SignOutButton>
+                <Button
+                  variant="ghost"
+                  className="w-full justify-start text-lg"
+                  onClick={() => router.push("/")}
                 >
-                  <path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9" />
-                  <path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5" />
-                  <circle cx="12" cy="12" r="2" />
-                  <path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5" />
-                  <path d="M19.1 4.9C23 8.8 23 15.1 19.1 19" />
-                </svg>
-                Logout
-              </Button>
+                  Logout
+                </Button>
+              </SignOutButton>
             </div>
           </div>
           <div className="ml-2">

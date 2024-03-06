@@ -16,20 +16,20 @@
 
 body {
   overscroll-behavior: none;
-  scrollbar-width: thin;
-  scrollbar-color: var(--primary) var(--secondary);
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 3px;
+  position: fixed;
+  right: 0;
 }
 
 ::-webkit-scrollbar-track {
-  background-color: var(--background);
+  @apply bg-transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--foreground);
+  @apply rounded-full bg-zinc-700;
 }
 
 @layer base {

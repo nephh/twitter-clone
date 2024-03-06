@@ -10,7 +10,6 @@ import { Label } from "~/components/ui/label";
 import { useSignIn } from "@clerk/nextjs";
 import { useState } from "react";
 import type { OAuthStrategy } from "@clerk/nextjs/server";
-import { useRouter } from "next/router";
 
 type UserAuthFormProps = React.HTMLAttributes<HTMLDivElement>;
 
@@ -18,8 +17,7 @@ export function SignInForm({ className, ...props }: UserAuthFormProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const { isLoaded, signIn, setActive } = useSignIn();
-  const { push, replace } = useRouter();
+  const { isLoaded, signIn } = useSignIn();
 
   const signInWith = (strategy: OAuthStrategy) => {
     if (!isLoaded) {
