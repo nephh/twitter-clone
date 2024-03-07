@@ -126,13 +126,13 @@ export const postRouter = createTRPCRouter({
     }),
 
   addLike: privateProcedure
-    .input(z.object({ id: z.string(), payload: z.string() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const { id: postId, payload } = input;
+      const { id } = input;
       const userId = ctx.currentUser;
 
       const post = await ctx.db.post.findUnique({
-        where: { id: postId },
+        where: { id },
         include: { likedBy: true },
       });
 
@@ -147,7 +147,7 @@ export const postRouter = createTRPCRouter({
 
       if (!userCheck) {
         await ctx.db.post.update({
-          where: { id: postId },
+          where: { id },
           include: { likedBy: true },
           data: {
             likedBy: {
@@ -157,7 +157,7 @@ export const postRouter = createTRPCRouter({
         });
       } else {
         await ctx.db.post.update({
-          where: { id: postId },
+          where: { id },
           include: { likedBy: true },
           data: {
             likedBy: {

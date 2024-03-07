@@ -37,7 +37,6 @@ export default function Post(props: PostWithUser) {
   async function handleClick(
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     id: string,
-    payload: "addLike" | "removeLike",
   ) {
     e.preventDefault();
     if (!isSignedIn) {
@@ -50,7 +49,7 @@ export default function Post(props: PostWithUser) {
       setPostLikes(postLikes + 1);
     }
     setIsLikedByUser(!isLikedByUser);
-    mutate({ id, payload });
+    mutate({ id });
   }
 
   return (
@@ -87,7 +86,7 @@ export default function Post(props: PostWithUser) {
       </Link>
       <div className="flex w-full flex-row items-center justify-between gap-4">
         <button
-          onClick={(e) => handleClick(e, post.id, "addLike")}
+          onClick={(e) => handleClick(e, post.id)}
           disabled={isLoading}
           className="flex flex-row items-center justify-center gap-1"
         >
