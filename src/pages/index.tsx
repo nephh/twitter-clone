@@ -1,6 +1,5 @@
-import { UserButton, useUser } from "@clerk/nextjs";
+import { useUser } from "@clerk/nextjs";
 import { api } from "~/utils/api";
-import Image from "next/image";
 import { Loading, LoadingPage } from "~/components/Loading";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -8,15 +7,13 @@ import Post from "~/components/Post";
 import ErrorPage from "~/components/ErrorPage";
 import FeedSkelly from "~/components/FeedSkelly";
 import { Button } from "~/components/ui/button";
-import { useRouter } from "next/router";
 import Link from "next/link";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
-// The UserButton we are using can take a second to load in, so we use an image in the same place
-// that will be replaced by the UserButton once it is loaded in. Looks a bit cleaner, but obviously is a bit inefficient.
-// The "size" prop also only changes the size of the Image, and we need to go into the styles file to change
-// the UserButton. This component can be reused, just make sure to resize the UserButton separately each time if needed.
-//
-function ProfilePicture({ size = 80 }) {
+function CreatePostWizard() {
+  const [value, setValue] = useState("");
+  const [charCount, setCharCount] = useState(0);
+  const ctx = api.useUtils();
   const { user, isLoaded } = useUser();
 
   if (!isLoaded) {
@@ -27,31 +24,7 @@ function ProfilePicture({ size = 80 }) {
     return null;
   }
 
-  return (
-    <div style={{ position: "relative", width: size, height: size }}>
-      <div
-        style={{ position: "absolute", zIndex: 1 }}
-        className="create-post-avatar"
-        itemType="button"
-      >
-        <UserButton afterSignOutUrl="/" />
-      </div>
-      <Image
-        src={user.imageUrl}
-        alt="profile picture"
-        width={size}
-        height={size}
-        className="rounded-full"
-        style={{ position: "absolute", zIndex: 0 }}
-      />
-    </div>
-  );
-}
-
-function CreatePostWizard() {
-  const [value, setValue] = useState("");
-  const [charCount, setCharCount] = useState(0);
-  const ctx = api.useUtils();
+  const initials = user.username ? user.username.slice(0, 2) : "";
   const { mutate, isLoading } = api.post.create.useMutation({
     onSuccess: () => {
       setValue("");
@@ -115,7 +88,12 @@ function CreatePostWizard() {
         onChange={(e) => handleChange(e)}
         disabled={isLoading}
       />
-      <ProfilePicture />
+      <Link href={`/@${user.username}`}>
+        <Avatar className="h-24 w-24">
+          <AvatarImage src={user.imageUrl} alt={`@${user.username}`} />
+          <AvatarFallback>{initials}</AvatarFallback>
+        </Avatar>
+      </Link>
     </form>
   );
 }
@@ -142,7 +120,6 @@ function PostFeed() {
 
 export default function Home() {
   const { isSignedIn, isLoaded } = useUser();
-  const { push } = useRouter();
 
   if (!isLoaded) {
     return <LoadingPage />;
