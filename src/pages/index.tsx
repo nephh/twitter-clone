@@ -9,6 +9,7 @@ import ErrorPage from "~/components/ErrorPage";
 import FeedSkelly from "~/components/FeedSkelly";
 import { Button } from "~/components/ui/button";
 import { useRouter } from "next/router";
+import Link from "next/link";
 
 // The UserButton we are using can take a second to load in, so we use an image in the same place
 // that will be replaced by the UserButton once it is loaded in. Looks a bit cleaner, but obviously is a bit inefficient.
@@ -152,10 +153,14 @@ export default function Home() {
         {isSignedIn ? (
           <CreatePostWizard />
         ) : (
-          <div>
-            <Button onClick={async () => await push("/login")}>Login</Button>
-            <Button onClick={async () => await push("/signup")}>Signup</Button>
-          </div>
+          <h1 className="scroll-m-20 p-4 text-center text-4xl font-bold tracking-tight lg:text-5xl">
+            <Link href="/login">
+              <span className="hover:cursor-pointer hover:text-zinc-300">
+                Login{" "}
+              </span>
+            </Link>
+            and join the conversation
+          </h1>
         )}
       </div>
       <PostFeed />

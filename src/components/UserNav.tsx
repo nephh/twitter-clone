@@ -13,10 +13,10 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
+import { Icons } from "./ui/icons";
 
 export function UserNav() {
   const { user, isLoaded } = useUser();
-  const { push } = useRouter();
 
   if (!isLoaded) {
     return null;
@@ -24,9 +24,18 @@ export function UserNav() {
 
   if (!user) {
     return (
-      <Button variant="ghost" onClick={() => push("/")}>
-        Sign in
-      </Button>
+      <div className="flex items-center justify-evenly">
+        <Link href="/login">
+          <Button variant="ghost" className="p-5 text-lg">
+            Login
+          </Button>
+        </Link>
+        <Link href="/signup">
+          <Button variant="ghost" className="p-5 text-lg">
+            Sign up
+          </Button>
+        </Link>
+      </div>
     );
   }
 
@@ -44,15 +53,18 @@ export function UserNav() {
             <AvatarFallback>{initials}</AvatarFallback>
           </Avatar>
           <div className="w-full text-left">
-            <p className="text-md ml-4">{user.username}</p>
+            <p className="text-md ml-4">{user.fullName ?? user.username}</p>
             <p className="ml-4 text-sm">@{user.username}</p>
           </div>
+          <Icons.dots className="h-7 w-7" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="ml-[105px] w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.username}</p>
+            <p className="text-sm font-medium leading-none">
+              {user.fullName ?? user.username}
+            </p>
             <p className="text-xs leading-none text-muted-foreground">
               @{user.username}
             </p>
@@ -61,25 +73,16 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <Link href={`@${user.username}`}>
-            <DropdownMenuItem>
-              Profile
-              <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-            </DropdownMenuItem>
+            <DropdownMenuItem>Profile</DropdownMenuItem>
           </Link>
           <Link href={`/settings`}>
-            <DropdownMenuItem>
-              Settings
-              <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-            </DropdownMenuItem>
+            <DropdownMenuItem>Settings</DropdownMenuItem>
           </Link>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <SignOutButton>
           <Link href="/">
-            <DropdownMenuItem>
-              Log out
-              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-            </DropdownMenuItem>
+            <DropdownMenuItem>Log out</DropdownMenuItem>
           </Link>
         </SignOutButton>
       </DropdownMenuContent>
