@@ -14,6 +14,19 @@
   @apply text-zinc-100;
 }
 
+.cl-internal-1bnsg8s {
+  /* hiding the clerk logo, kinda looks rough */
+  @apply hidden bg-zinc-200 text-zinc-900;
+}
+
+.cl-rootBox {
+  @apply overflow-hidden;
+}
+
+.cl-card {
+  @apply w-full;
+}
+
 body {
   overscroll-behavior: none;
 }

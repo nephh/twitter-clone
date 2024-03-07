@@ -1,4 +1,5 @@
 import { SignOutButton, useUser } from "@clerk/nextjs";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 import { Button } from "~/components/ui/button";
@@ -35,15 +36,13 @@ export function UserNav() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
-          variant="ghost"
-          className="h-18 flex w-full flex-row items-center p-6"
+          variant="outline"
+          className="h-18 flex w-full flex-row items-center rounded-full border-0 py-3"
         >
-          <Button variant="ghost" className="h-14 w-14 rounded-full">
-            <Avatar className="h-14 w-14">
-              <AvatarImage src={user.imageUrl} alt={`@${user.username}`} />
-              <AvatarFallback>{initials}</AvatarFallback>
-            </Avatar>
-          </Button>
+          <Avatar className="h-10 w-10">
+            <AvatarImage src={user.imageUrl} alt={`@${user.username}`} />
+            <AvatarFallback>{initials}</AvatarFallback>
+          </Avatar>
           <div className="w-full text-left">
             <p className="text-md ml-4">{user.username}</p>
             <p className="ml-4 text-sm">@{user.username}</p>
@@ -61,21 +60,27 @@ export function UserNav() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem onClick={() => push(`@${user.username}`)}>
-            Profile
-            <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Settings
-            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
-          </DropdownMenuItem>
+          <Link href={`@${user.username}`}>
+            <DropdownMenuItem>
+              Profile
+              <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+            </DropdownMenuItem>
+          </Link>
+          <Link href={`/settings`}>
+            <DropdownMenuItem>
+              Settings
+              <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+            </DropdownMenuItem>
+          </Link>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <SignOutButton>
-          <DropdownMenuItem onClick={() => push("/")}>
-            Log out
-            <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-          </DropdownMenuItem>
+          <Link href="/">
+            <DropdownMenuItem>
+              Log out
+              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+            </DropdownMenuItem>
+          </Link>
         </SignOutButton>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -9,6 +9,7 @@ export default authMiddleware({
     "/signup",
     "/login",
   ],
+  signInUrl: "/login",
   // Routes that can always be accessed, and have
   // no authentication information
   // ignoredRoutes: ["api/trpc/post.getall"],
