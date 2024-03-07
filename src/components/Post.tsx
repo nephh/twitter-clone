@@ -16,9 +16,10 @@ type PostWithUser = RouterOutputs["post"]["getAll"][number];
 export default function Post(props: PostWithUser) {
   const { user: currentUser, isSignedIn } = useUser();
   const [isLiked, setIsLiked] = useState(false);
-  const [postLikes, setPostLikes] = useState(props.post.likedBy.length);
+  const [postLikes, setPostLikes] = useState(props?.post.likedBy.length);
   const ctx = api.useUtils();
-  const { post, author } = props;
+  const post = props?.post;
+  const author = props?.author;
   const { mutate, isLoading } = api.post.addLike.useMutation({
     onSuccess: () => {
       void ctx.post.getAll.invalidate();
@@ -35,22 +36,28 @@ export default function Post(props: PostWithUser) {
     });
 
   useEffect(() => {
-    const userCheck = post.likedBy.some(
+    const userCheck = post?.likedBy.some(
       (user: { externalId: string | undefined }) =>
         user.externalId === currentUser?.id,
     );
-    setIsLiked(userCheck);
-  }, [post.likedBy, currentUser?.id]);
+    setIsLiked(userCheck ?? false);
+  }, [post?.likedBy, currentUser?.id]);
 
   async function handleClick(
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     id: string,
   ) {
     e.preventDefault();
+
     if (!isSignedIn) {
       toast.error("You must be signed in to like a post");
       return;
     }
+
+    if (!postLikes) {
+      return null;
+    }
+
     if (isLiked) {
       setPostLikes(postLikes - 1);
     } else {
@@ -74,11 +81,15 @@ export default function Post(props: PostWithUser) {
     retweetMutate({ id, originalAuthorId });
   }
 
+  if (!post || !author) {
+    return null;
+  }
+
   return (
     <div className="border-b p-6">
       <div className="mb-4 flex flex-row justify-between">
         <div className="flex w-full flex-row items-center gap-4">
-          <Link href={`/@${author.username}`}>
+          <Link href={`/@${  author.username}`}>
             <Image
               src={author.imageUrl}
               alt="post profile picture"

@@ -120,7 +120,7 @@ function PostFeed() {
 
         return (
           <Post
-            key={post.post.id}
+            key={post.retweetId === "" ? post.post.id : post.retweetId}
             post={post.post}
             author={post.author}
             retweetId={post.retweetId}
