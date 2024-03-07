@@ -71,7 +71,7 @@ function CreatePostWizard() {
         <Button
           variant="ghost"
           name="post"
-          className="text-xl font-semibold"
+          className="p-5 text-xl font-semibold"
           disabled={isLoading}
         >
           Post
