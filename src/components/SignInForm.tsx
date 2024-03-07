@@ -10,6 +10,7 @@ import { Label } from "~/components/ui/label";
 import { useSignIn } from "@clerk/nextjs";
 import { useState } from "react";
 import type { OAuthStrategy } from "@clerk/nextjs/server";
+import { set } from "zod";
 
 type UserAuthFormProps = React.HTMLAttributes<HTMLDivElement>;
 
@@ -23,6 +24,8 @@ export function SignInForm({ className, ...props }: UserAuthFormProps) {
     if (!isLoaded) {
       return;
     }
+
+    setIsLoading(true);
 
     return signIn.authenticateWithRedirect({
       strategy,

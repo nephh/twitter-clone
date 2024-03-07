@@ -25,6 +25,8 @@ export function SignUpForm({ className, ...props }: UserAuthFormProps) {
       return;
     }
 
+    setIsLoading(true);
+
     return signIn.authenticateWithRedirect({
       strategy,
       redirectUrl: "/sso-callback",
