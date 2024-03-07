@@ -15,25 +15,34 @@ datasource db {
 }
 
 model Post {
-    id        String   @id @default(cuid())
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  content   String   @db.VarChar(255)
+  authorId  String
+  likedBy   User[]   
+  retweets  Retweet[] 
 
-    content   String   @db.VarChar(255)
-    authorId  String
-    likedBy   User[]   
-
-    @@index([authorId])
+  @@index([authorId])
 }
 
 model User {
-    id          String   @id @default(cuid())
-    externalId  String   @unique
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
+  id          String   @id @default(cuid())
+  externalId  String   @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  retweets    Retweet[] 
+  likedPosts  Post[]   
+}
 
-    attributes  Json
-    likedPosts  Post[]   
-    
-    @@index([externalId])
+model Retweet {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  postId    String
+  userId    String
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+  
+  @@index([postId, userId])
 }
