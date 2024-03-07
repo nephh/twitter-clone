@@ -21,6 +21,14 @@ export default function Post(props: PostWithUser) {
   const ctx = api.useUtils();
   const { post, author } = props;
 
+  const { mutate: likeMutate, isLoading: loadingLike } =
+    api.post.addLike.useMutation({
+      onSuccess: () => {
+        void ctx.post.getAll.invalidate();
+        void ctx.post.userPosts.invalidate();
+      },
+    });
+
   useEffect(() => {
     const likeCheck = post.likedBy.some(
       (user: { externalId: string | undefined }) =>
@@ -36,20 +44,13 @@ export default function Post(props: PostWithUser) {
     // setIsRetweeted(retweetCheck);
   }, [post.likedBy, currentUser?.id]);
 
-  const { mutate: likeMutate, isLoading: loadingLike } =
-    api.post.addLike.useMutation({
-      onSuccess: () => {
-        void ctx.post.getAll.invalidate();
-        void ctx.post.userPosts.invalidate();
-      },
-    });
-
   const { mutate: retweetMutate, isLoading: loadingRetweet } =
     api.post.retweet.useMutation({
       onSuccess: () => {
         // void means we don't care about waiting for this to finish, no need for async/await
         //
         void ctx.post.getAll.invalidate();
+        void ctx.post.userPosts.invalidate();
         toast.success("Retweeted successfully");
       },
       onError: (e) => {
