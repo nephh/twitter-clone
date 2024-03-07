@@ -126,9 +126,9 @@ export const postRouter = createTRPCRouter({
     }),
 
   addLike: privateProcedure
-    .input(z.object({ id: z.string(), payload: z.string() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const { id: postId, payload } = input;
+      const { id: postId } = input;
       const userId = ctx.currentUser;
 
       const post = await ctx.db.post.findUnique({
@@ -178,5 +178,34 @@ export const postRouter = createTRPCRouter({
         include: { likedBy: true },
       });
       console.log(likedPosts);
+    }),
+
+  retweet: privateProcedure
+    .input(
+      z.object({
+        content: z.string(),
+        originalAuthor: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const authorId = ctx.currentUser;
+      const { success } = await rateLimit.limit(authorId);
+
+      if (!success) {
+        throw new TRPCError({
+          code: "TOO_MANY_REQUESTS",
+          message: "Rate limit exceeded",
+        });
+      }
+
+      const post = await ctx.db.post.create({
+        data: {
+          content: input.content,
+          authorId,
+          originalAuthor: input.originalAuthor,
+        },
+      });
+
+      return post;
     }),
 });
