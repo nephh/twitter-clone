@@ -89,8 +89,6 @@ export const postRouter = createTRPCRouter({
       }
     }
 
-    console.log(posts[4]?.likedBy, posts[0]?.likedBy, posts[0]);
-
     return addUserToPost(posts);
   }),
 
@@ -150,58 +148,88 @@ export const postRouter = createTRPCRouter({
     }),
 
   addLike: privateProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ id: z.string(), originalId: z.string().optional() }))
     .mutation(async ({ ctx, input }) => {
-      const { id: postId } = input;
+      const { id: postId, originalId } = input;
       const userId = ctx.currentUser;
 
-      const post = await ctx.db.post.findUnique({
-        where: { id: postId },
-        include: { likedBy: true },
-      });
-
-      if (!post) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Post not found",
-        });
-      }
-
-      const userCheck = post.likedBy.some((user) => user.externalId === userId);
-
-      if (!userCheck) {
-        await ctx.db.post.update({
+      if (!originalId) {
+        const post = await ctx.db.post.findUnique({
           where: { id: postId },
           include: { likedBy: true },
-          data: {
-            likedBy: {
-              connect: { externalId: userId },
-            },
-          },
         });
+
+        if (!post) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Post not found",
+          });
+        }
+
+        const userCheck = post.likedBy.some(
+          (user) => user.externalId === userId,
+        );
+
+        if (!userCheck) {
+          await ctx.db.post.update({
+            where: { id: postId },
+            include: { likedBy: true },
+            data: {
+              likedBy: {
+                connect: { externalId: userId },
+              },
+            },
+          });
+        } else {
+          await ctx.db.post.update({
+            where: { id: postId },
+            include: { likedBy: true },
+            data: {
+              likedBy: {
+                disconnect: { externalId: userId },
+              },
+            },
+          });
+        }
       } else {
-        await ctx.db.post.update({
-          where: { id: postId },
+        const post = await ctx.db.post.findUnique({
+          where: { id: originalId },
           include: { likedBy: true },
-          data: {
-            likedBy: {
-              disconnect: { externalId: userId },
-            },
-          },
         });
-      }
 
-      const likedPosts = await ctx.db.post.findMany({
-        where: {
-          likedBy: {
-            some: {
-              externalId: userId,
+        if (!post) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Post not found",
+          });
+        }
+
+        const userCheck = post.likedBy.some(
+          (user) => user.externalId === userId,
+        );
+
+        if (!userCheck) {
+          await ctx.db.post.update({
+            where: { id: originalId },
+            include: { likedBy: true },
+            data: {
+              likedBy: {
+                connect: { externalId: userId },
+              },
             },
-          },
-        },
-        include: { likedBy: true },
-      });
-      console.log(likedPosts);
+          });
+        } else {
+          await ctx.db.post.update({
+            where: { id: originalId },
+            include: { likedBy: true },
+            data: {
+              likedBy: {
+                disconnect: { externalId: userId },
+              },
+            },
+          });
+        }
+      }
     }),
 
   retweet: privateProcedure
