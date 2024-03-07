@@ -86,22 +86,23 @@ function CreatePostWizard() {
 
   return (
     <form
-      className="flex w-full flex-row-reverse gap-4"
+      className="flex w-full flex-row-reverse items-center gap-4"
       onSubmit={(e) => handleSubmit(e)}
     >
-      <p className="absolute text-xs text-gray-500">{255 - charCount}</p>
+      <p className="absolute top-3 text-xs text-gray-500">{255 - charCount}</p>
       {isLoading ? (
-        <div>
-          <Loading />
+        <div className="mr-4 flex items-center justify-center">
+          <Loading size={8} />
         </div>
       ) : (
-        <button
+        <Button
+          variant="ghost"
           name="post"
-          className="text-base font-semibold"
+          className="text-xl font-semibold"
           disabled={isLoading}
         >
           Post
-        </button>
+        </Button>
       )}
       {/* eventually we want this input to be a textarea that will grow vertically
       instead of infinitely to the right */}

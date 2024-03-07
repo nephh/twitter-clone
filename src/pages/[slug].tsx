@@ -66,19 +66,28 @@ export default function Profile(
   return (
     <>
       <Head>
-        <title>{user.username}</title>
+        <title>{`@${user.username}`}</title>
       </Head>
-      <div className="relative h-48 w-full bg-gray-700">
+      <div className="relative max-h-[14rem] min-h-[14rem] w-full bg-gray-700">
+        {user.username === "nephh" && (
+          <Image
+            src="/example-header.jpg"
+            alt="header picture"
+            objectFit="cover"
+            fill
+            priority
+          />
+        )}
         <Image
           src={user.imageUrl}
           alt="Profile Picture"
           width={140}
           height={140}
-          className="absolute bottom-0 left-6 -mb-12 rounded-full border-4 border-zinc-950"
+          className="absolute -bottom-5 left-6 -mb-12 rounded-full border-4 border-zinc-950"
         />
       </div>
-      <div className="border-b p-6">
-        <p className="mt-8 text-4xl font-bold">{user.fullName}</p>
+      <div className="border-b p-6 pt-20">
+        <p className="text-4xl font-bold">{user.fullName}</p>
         <p className="text-xl font-semibold">@{user.username}</p>
         <div className="mt-4 flex flex-row justify-between gap-4 text-lg font-semibold text-gray-500">
           {posts && (

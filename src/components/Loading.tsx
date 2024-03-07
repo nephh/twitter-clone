@@ -1,12 +1,12 @@
 import { Icons } from "./ui/icons";
 
-export function Loading() {
+export function Loading({ size = 14 }) {
   return (
     <div
       role="status"
       className="flex h-full w-full items-center justify-center bg-background"
     >
-      <Icons.spinner className="mr-2 h-24 w-24 animate-spin" />
+      <Icons.spinner className={`mr-2 h-${size} w-${size} animate-spin`} />
       <span className="sr-only">Loading...</span>
     </div>
   );
