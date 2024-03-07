@@ -66,15 +66,11 @@ export default async function handler(
         externalId: id,
       },
       update: {
-        attributes: {
-          username: attributes.username,
-        },
+        username: attributes.username ?? "",
       },
       create: {
         externalId: id,
-        attributes: {
-          username: attributes.username,
-        },
+        username: attributes.username ?? "",
       },
     });
   } else if (eventType === "user.deleted") {

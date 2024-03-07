@@ -15,7 +15,7 @@ type PostWithUser = RouterOutputs["post"]["getAll"][number];
 
 export default function Post(props: PostWithUser) {
   const { user: currentUser, isSignedIn } = useUser();
-  const [isLikedByUser, setIsLikedByUser] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
   const [postLikes, setPostLikes] = useState(props.post.likedBy.length);
   const ctx = api.useUtils();
   const { post, author } = props;
@@ -26,12 +26,20 @@ export default function Post(props: PostWithUser) {
     },
   });
 
+  const { mutate: retweetMutate, isLoading: loadingRetweet } =
+    api.post.retweet.useMutation({
+      onSuccess: () => {
+        void ctx.post.getAll.invalidate();
+        void ctx.post.userPosts.invalidate();
+      },
+    });
+
   useEffect(() => {
     const userCheck = post.likedBy.some(
       (user: { externalId: string | undefined }) =>
         user.externalId === currentUser?.id,
     );
-    setIsLikedByUser(userCheck);
+    setIsLiked(userCheck);
   }, [post.likedBy, currentUser?.id]);
 
   async function handleClick(
@@ -43,13 +51,27 @@ export default function Post(props: PostWithUser) {
       toast.error("You must be signed in to like a post");
       return;
     }
-    if (isLikedByUser) {
+    if (isLiked) {
       setPostLikes(postLikes - 1);
     } else {
       setPostLikes(postLikes + 1);
     }
-    setIsLikedByUser(!isLikedByUser);
+    setIsLiked(!isLiked);
     mutate({ id });
+  }
+
+  function handleRetweet(
+    e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
+    id: string,
+    originalAuthorId: string,
+  ) {
+    e.preventDefault();
+    if (!isSignedIn) {
+      toast.error("You must be signed in to retweet a post");
+      return;
+    }
+
+    retweetMutate({ id, originalAuthorId });
   }
 
   return (
@@ -90,12 +112,23 @@ export default function Post(props: PostWithUser) {
           disabled={isLoading}
           className="flex flex-row items-center justify-center gap-1"
         >
-          {!isLikedByUser ? (
+          {!isLiked ? (
             <Icons.emptyHeart className="h-5 w-5" />
           ) : (
             <Icons.heart className="h-5 w-5" color="#ef4444" />
           )}
           {postLikes}
+        </button>
+        <button
+          onClick={(e) => handleRetweet(e, post.id, author.id)}
+          disabled={loadingRetweet}
+          className="flex flex-row items-center justify-center gap-1"
+        >
+          {!isLiked ? (
+            <Icons.retweet className="h-5 w-5" />
+          ) : (
+            <Icons.retweet className="h-5 w-5" color="#15803d" />
+          )}
         </button>
         <Icons.menu className="h-5 w-5" />
       </div>

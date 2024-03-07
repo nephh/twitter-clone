@@ -42,6 +42,9 @@ async function addUserToPost(posts: PostWithLikes[]) {
     return {
       post,
       author,
+      retweetId: "",
+      retweetAuthor: "",
+      retweetedAt: "",
     };
   });
 }
@@ -67,7 +70,26 @@ export const postRouter = createTRPCRouter({
       });
     }
 
-    return addUserToPost(posts);
+    const retweets = await ctx.db.retweet.findMany({
+      include: { originalPost: { include: { likedBy: true } } },
+    });
+    const originalPosts = await addUserToPost(posts);
+
+    const fullRetweets = retweets.map((post) => {
+      const originalPost = originalPosts.find(
+        (originalPost) => originalPost.post.id === post.originalPostId,
+      );
+
+      if (originalPost) {
+        return {
+          ...originalPost,
+          retweetId: post.id,
+          retweetAuthor: post.authorId,
+          retweetedAt: post.createdAt,
+        };
+      }
+    });
+    return [...originalPosts, ...fullRetweets];
   }),
 
   userPosts: publicProcedure
@@ -178,5 +200,33 @@ export const postRouter = createTRPCRouter({
         include: { likedBy: true },
       });
       console.log(likedPosts);
+    }),
+
+  retweet: privateProcedure
+    .input(z.object({ id: z.string(), originalAuthorId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { id, originalAuthorId } = input;
+      const authorId = ctx.currentUser;
+
+      const post = await ctx.db.post.findUnique({
+        where: { id },
+      });
+
+      if (!post) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Post not found",
+        });
+      }
+
+      const retweet = await ctx.db.retweet.create({
+        data: {
+          originalPostId: id,
+          originalAuthorId,
+          authorId,
+        },
+      });
+
+      return retweet;
     }),
 });

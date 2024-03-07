@@ -2,47 +2,49 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider        = "prisma-client-js"
-    previewFeatures = ["driverAdapters"]
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-    provider = "mysql"
-    url      = env("DATABASE_URL")
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 
-    // Do not use foreign keys (PlanetScale does not support them)
-    relationMode = "prisma"
+  // Do not use foreign keys (PlanetScale does not support them)
+  relationMode = "prisma"
 }
 
 model Post {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  content   String   @db.VarChar(255)
+  id        String    @id @default(cuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  content   String    @db.VarChar(255)
   authorId  String
-  likedBy   User[]   
-  retweets  Retweet[] 
+  likedBy   User[]
+  retweets  Retweet[]
 
   @@index([authorId])
 }
 
 model User {
-  id          String   @id @default(cuid())
-  externalId  String   @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  retweets    Retweet[] 
-  likedPosts  Post[]   
+  id         String    @id @default(cuid())
+  externalId String    @unique
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  username   String    @unique
+  retweets   Retweet[]
+  likedPosts Post[]
 }
 
 model Retweet {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  postId    String
-  userId    String
-  post      Post     @relation(fields: [postId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
-  
-  @@index([postId, userId])
+  id               String   @id @default(cuid())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  authorId         String
+  originalPostId   String
+  originalAuthorId String
+  originalPost     Post     @relation(fields: [originalPostId], references: [id])
+  originalAuthor   User     @relation(fields: [originalAuthorId], references: [externalId])
+
+  @@index([originalPostId, originalAuthorId])
 }
