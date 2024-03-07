@@ -65,6 +65,7 @@ export default function Post(props: PostWithUser) {
   async function handleRetweet(
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     content: string,
+    originalId: string,
     originalAuthor: string,
   ) {
     e.preventDefault();
@@ -74,7 +75,7 @@ export default function Post(props: PostWithUser) {
     }
 
     setIsRetweeted(!isRetweeted);
-    retweetMutate({ content, originalAuthor });
+    retweetMutate({ content, originalId, originalAuthor });
   }
 
   async function handleLike(
@@ -120,7 +121,9 @@ export default function Post(props: PostWithUser) {
               <p className="scroll-m-20 text-xl font-semibold tracking-tight">
                 {post.originalAuthor ?? author.fullName}
               </p>
-              <p className="text-sm font-thin">@{post.originalAuthor ?? author.username}</p>
+              <p className="text-sm font-thin">
+                @{post.originalAuthor ?? author.username}
+              </p>
             </div>
           </Link>
         </div>
@@ -136,7 +139,11 @@ export default function Post(props: PostWithUser) {
       </Link>
       <div className="flex w-full flex-row items-center justify-between gap-4">
         <button
-          onClick={(e) => handleLike(e, post.id)}
+          onClick={(e) =>
+            post.originalAuthor
+              ? handleLike(e, post.originalId ?? "")
+              : handleLike(e, post.id)
+          }
           disabled={loadingLike}
           className="flex flex-row items-center justify-center gap-1"
         >
@@ -148,7 +155,9 @@ export default function Post(props: PostWithUser) {
           {postLikes}
         </button>
         <button
-          onClick={(e) => handleRetweet(e, post.content, author.username ?? "")}
+          onClick={(e) =>
+            handleRetweet(e, post.content, post.id, author.username ?? "")
+          }
           disabled={loadingRetweet}
           className="flex flex-row items-center justify-center gap-1"
         >

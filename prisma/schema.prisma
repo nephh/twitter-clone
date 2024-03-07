@@ -22,6 +22,7 @@ model Post {
     content   String   @db.VarChar(255)
     authorId  String
     originalAuthor  String?
+    originalId String?
     likedBy   User[]   
 
     @@index([authorId])

@@ -67,6 +67,30 @@ export const postRouter = createTRPCRouter({
       });
     }
 
+    for (const post of posts) {
+      if (post.originalId) {
+        const originalPost = await ctx.db.post.findUnique({
+          where: { id: post.originalId },
+          include: { likedBy: true },
+        });
+
+        if (originalPost) {
+          await ctx.db.post.update({
+            where: { id: post.id },
+            data: {
+              likedBy: {
+                set: originalPost.likedBy.map((user) => ({
+                  id: user.id,
+                })),
+              },
+            },
+          });
+        }
+      }
+    }
+
+    console.log(posts[4]?.likedBy, posts[0]?.likedBy, posts[0]);
+
     return addUserToPost(posts);
   }),
 
@@ -184,6 +208,7 @@ export const postRouter = createTRPCRouter({
     .input(
       z.object({
         content: z.string(),
+        originalId: z.string(),
         originalAuthor: z.string(),
       }),
     )
@@ -202,6 +227,7 @@ export const postRouter = createTRPCRouter({
         data: {
           content: input.content,
           authorId,
+          originalId: input.originalId,
           originalAuthor: input.originalAuthor,
         },
       });
