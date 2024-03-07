@@ -111,9 +111,24 @@ function PostFeed() {
 
   return (
     <div className="flex w-full grow flex-col overflow-y-auto">
-      {posts.map(({ post, author }) => (
-        <Post key={post.id} post={post} author={author} />
-      ))}
+      {posts.map((post) => {
+        if (!post) {
+          return null;
+        }
+
+        console.log(post);
+
+        return (
+          <Post
+            key={post.post.id}
+            post={post.post}
+            author={post.author}
+            retweetId={post.retweetId}
+            retweetAuthor={post.retweetAuthor}
+            retweetedAt={new Date(post.retweetedAt)}
+          />
+        );
+      })}
     </div>
   );
 }
