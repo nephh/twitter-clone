@@ -103,20 +103,58 @@ export const postRouter = createTRPCRouter({
         username: [input.username],
       });
 
-      if (!user) {
+      if (!user?.username) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "User not found",
         });
       }
 
-      const posts = await ctx.db.post.findMany({
+      const userPosts = await ctx.db.post.findMany({
         where: { authorId: user.id },
         orderBy: { createdAt: "desc" },
         include: { likedBy: true },
       });
 
-      return addUserToPost(posts);
+      const allPosts = await ctx.db.post.findMany({
+        orderBy: { createdAt: "desc" },
+        include: { likedBy: true },
+      });
+
+      const retweets = await ctx.db.retweet.findMany({
+        where: { authorId: user.username },
+        include: {
+          originalPost: { include: { likedBy: true } },
+          originalAuthor: true,
+        },
+      });
+
+      const originalPosts = await addUserToPost(userPosts);
+      const allPostsFormatted = await addUserToPost(allPosts);
+
+      const fullRetweets = retweets.map((post) => {
+        const originalPost = allPostsFormatted.find(
+          (originalPost) => originalPost.post.id === post.originalPostId,
+        );
+
+        if (originalPost) {
+          return {
+            ...originalPost,
+            retweetId: post.id,
+            retweetAuthor: post.authorId,
+            retweetedAt: post.createdAt,
+          };
+        }
+      });
+
+      const combined = [...originalPosts, ...fullRetweets];
+
+      combined.sort(
+        (a, b) =>
+          (b?.retweetedAt?.getTime() ?? 0) - (a?.retweetedAt?.getTime() ?? 0),
+      );
+
+      return combined;
     }),
 
   create: privateProcedure
