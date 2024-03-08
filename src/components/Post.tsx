@@ -4,7 +4,7 @@ import { api } from "~/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useUser } from "@clerk/clerk-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Icons } from "./ui/icons";
 import { toast } from "sonner";
 import type { Post } from "@prisma/client";
@@ -31,9 +31,10 @@ export default function Post(props: PostProps) {
   const [isLiked, setIsLiked] = useState(false);
   const [postLikes, setPostLikes] = useState(0);
   const ctx = api.useUtils();
-  const post = props.post;
-  const author = props.author;
   const retweetAuthor = props.retweetAuthor;
+
+  const { post, author } = props;
+
 
   const { mutate: likeMutate, isLoading: loadingLike } =
     api.post.addLike.useMutation({
@@ -55,7 +56,7 @@ export default function Post(props: PostProps) {
     });
 
   useEffect(() => {
-    const userCheck = post.likedBy.some(
+    const likeCheck = post.likedBy.some(
       (user: { externalId: string | undefined }) =>
         user.externalId === currentUser?.id,
     );
@@ -74,8 +75,8 @@ export default function Post(props: PostProps) {
       return;
     }
 
+
     if (isLiked) {
-      // this is not working correctly
       setPostLikes(postLikes - 1);
     } else {
       setPostLikes(postLikes + 1);
@@ -121,12 +122,14 @@ export default function Post(props: PostProps) {
               className="rounded-full"
             />
           </Link>
-          <Link href={`/@${author.username}`}>
+          <Link href={`/@${post.originalAuthor ?? author.username}`}>
             <div className="flex flex-col">
               <p className="scroll-m-20 text-xl font-semibold tracking-tight">
-                {author.fullName}
+                {post.originalAuthor ?? author.fullName}
               </p>
-              <p className="text-sm font-thin">@{author.username}</p>
+              <p className="text-sm font-thin">
+                @{post.originalAuthor ?? author.username}
+              </p>
             </div>
           </Link>
         </div>
