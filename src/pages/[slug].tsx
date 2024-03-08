@@ -37,9 +37,22 @@ function ProfileFeed(props: { username: string }) {
 
   return posts.length > 0 ? (
     <div className="flex flex-col overflow-y-scroll">
-      {posts.map(({ post, author }) => (
-        <Post key={post.id} post={post} author={author} />
-      ))}
+      {posts.map((post) => {
+        if (!post) {
+          return null;
+        }
+
+        return (
+          <Post
+            key={post.retweetId === "" ? post.post.id : post.retweetId}
+            post={post.post}
+            author={post.author}
+            retweetId={post.retweetId}
+            retweetAuthor={post.retweetAuthor}
+            retweetedAt={new Date(post.retweetedAt)}
+          />
+        );
+      })}
     </div>
   ) : (
     <NoPosts />
@@ -92,7 +105,7 @@ export default function Profile(
         <div className="mt-4 flex flex-row justify-between gap-4 text-lg font-semibold text-gray-500">
           {posts && (
             <p className="w-full">
-              {posts?.length} Post{posts.length > 1 && "s"}
+              {posts.length} Post{posts.length > 1 && "s"}
             </p>
           )}
           <p className="w-full text-end">

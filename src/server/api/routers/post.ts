@@ -42,18 +42,14 @@ async function addUserToPost(posts: PostWithLikes[]) {
     return {
       post,
       author,
+      retweetId: "",
+      retweetAuthor: "",
+      retweetedAt: new Date(post.createdAt),
     };
   });
 }
 
 export const postRouter = createTRPCRouter({
-  getLatest: publicProcedure.query(({ ctx }) => {
-    return ctx.db.post.findFirst({
-      orderBy: { createdAt: "desc" },
-      include: { likedBy: true },
-    });
-  }),
-
   getAll: publicProcedure.query(async ({ ctx }) => {
     const posts = await ctx.db.post.findMany({
       orderBy: { createdAt: "desc" },
@@ -67,29 +63,37 @@ export const postRouter = createTRPCRouter({
       });
     }
 
-    for (const post of posts) {
-      if (post.originalId) {
-        const originalPost = await ctx.db.post.findUnique({
-          where: { id: post.originalId },
-          include: { likedBy: true },
-        });
+    const retweets = await ctx.db.retweet.findMany({
+      include: {
+        originalPost: { include: { likedBy: true } },
+        originalAuthor: true,
+      },
+    });
 
-        if (originalPost) {
-          await ctx.db.post.update({
-            where: { id: post.id },
-            data: {
-              likedBy: {
-                set: originalPost.likedBy.map((user) => ({
-                  id: user.id,
-                })),
-              },
-            },
-          });
-        }
+    const originalPosts = await addUserToPost(posts);
+
+    const fullRetweets = retweets.map((post) => {
+      const originalPost = originalPosts.find(
+        (originalPost) => originalPost.post.id === post.originalPostId,
+      );
+
+      if (originalPost) {
+        return {
+          ...originalPost,
+          retweetId: post.id,
+          retweetAuthor: post.authorId,
+          retweetedAt: post.createdAt,
+        };
       }
-    }
+    });
+    const combined = [...originalPosts, ...fullRetweets];
 
-    return addUserToPost(posts);
+    combined.sort(
+      (a, b) =>
+        (b?.retweetedAt?.getTime() ?? 0) - (a?.retweetedAt?.getTime() ?? 0),
+    );
+
+    return combined;
   }),
 
   userPosts: publicProcedure
@@ -99,20 +103,58 @@ export const postRouter = createTRPCRouter({
         username: [input.username],
       });
 
-      if (!user) {
+      if (!user?.username) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "User not found",
         });
       }
 
-      const posts = await ctx.db.post.findMany({
+      const userPosts = await ctx.db.post.findMany({
         where: { authorId: user.id },
         orderBy: { createdAt: "desc" },
         include: { likedBy: true },
       });
 
-      return addUserToPost(posts);
+      const allPosts = await ctx.db.post.findMany({
+        orderBy: { createdAt: "desc" },
+        include: { likedBy: true },
+      });
+
+      const retweets = await ctx.db.retweet.findMany({
+        where: { authorId: user.username },
+        include: {
+          originalPost: { include: { likedBy: true } },
+          originalAuthor: true,
+        },
+      });
+
+      const originalPosts = await addUserToPost(userPosts);
+      const allPostsFormatted = await addUserToPost(allPosts);
+
+      const fullRetweets = retweets.map((post) => {
+        const originalPost = allPostsFormatted.find(
+          (originalPost) => originalPost.post.id === post.originalPostId,
+        );
+
+        if (originalPost) {
+          return {
+            ...originalPost,
+            retweetId: post.id,
+            retweetAuthor: post.authorId,
+            retweetedAt: post.createdAt,
+          };
+        }
+      });
+
+      const combined = [...originalPosts, ...fullRetweets];
+
+      combined.sort(
+        (a, b) =>
+          (b?.retweetedAt?.getTime() ?? 0) - (a?.retweetedAt?.getTime() ?? 0),
+      );
+
+      return combined;
     }),
 
   create: privateProcedure
@@ -148,118 +190,107 @@ export const postRouter = createTRPCRouter({
     }),
 
   addLike: privateProcedure
-    .input(z.object({ id: z.string(), originalId: z.string().optional() }))
+    .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const { id: postId, originalId } = input;
+      const { id } = input;
       const userId = ctx.currentUser;
 
-      if (!originalId) {
-        const post = await ctx.db.post.findUnique({
-          where: { id: postId },
-          include: { likedBy: true },
+      const post = await ctx.db.post.findUnique({
+        where: { id },
+        include: { likedBy: true },
+      });
+
+      if (!post) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Post not found",
         });
-
-        if (!post) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Post not found",
-          });
-        }
-
-        const userCheck = post.likedBy.some(
-          (user) => user.externalId === userId,
-        );
-
-        if (!userCheck) {
-          await ctx.db.post.update({
-            where: { id: postId },
-            include: { likedBy: true },
-            data: {
-              likedBy: {
-                connect: { externalId: userId },
-              },
-            },
-          });
-        } else {
-          await ctx.db.post.update({
-            where: { id: postId },
-            include: { likedBy: true },
-            data: {
-              likedBy: {
-                disconnect: { externalId: userId },
-              },
-            },
-          });
-        }
-      } else {
-        const post = await ctx.db.post.findUnique({
-          where: { id: originalId },
-          include: { likedBy: true },
-        });
-
-        if (!post) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Post not found",
-          });
-        }
-
-        const userCheck = post.likedBy.some(
-          (user) => user.externalId === userId,
-        );
-
-        if (!userCheck) {
-          await ctx.db.post.update({
-            where: { id: originalId },
-            include: { likedBy: true },
-            data: {
-              likedBy: {
-                connect: { externalId: userId },
-              },
-            },
-          });
-        } else {
-          await ctx.db.post.update({
-            where: { id: originalId },
-            include: { likedBy: true },
-            data: {
-              likedBy: {
-                disconnect: { externalId: userId },
-              },
-            },
-          });
-        }
       }
+
+      const userCheck = post.likedBy.some((user) => user.externalId === userId);
+
+      if (!userCheck) {
+        await ctx.db.post.update({
+          where: { id },
+          include: { likedBy: true },
+          data: {
+            likedBy: {
+              connect: { externalId: userId },
+            },
+          },
+        });
+      } else {
+        await ctx.db.post.update({
+          where: { id },
+          include: { likedBy: true },
+          data: {
+            likedBy: {
+              disconnect: { externalId: userId },
+            },
+          },
+        });
+      }
+
+      await ctx.db.post.findMany({
+        where: {
+          likedBy: {
+            some: {
+              externalId: userId,
+            },
+          },
+        },
+        include: { likedBy: true },
+      });
     }),
 
   retweet: privateProcedure
-    .input(
-      z.object({
-        content: z.string(),
-        originalId: z.string(),
-        originalAuthor: z.string(),
-      }),
-    )
+    .input(z.object({ id: z.string(), originalAuthorId: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      const { id, originalAuthorId } = input;
       const authorId = ctx.currentUser;
-      const { success } = await rateLimit.limit(authorId);
+      const user = await clerkClient.users.getUser(authorId);
 
-      if (!success) {
+      if (!user.username) {
         throw new TRPCError({
-          code: "TOO_MANY_REQUESTS",
-          message: "Rate limit exceeded",
+          code: "UNAUTHORIZED",
+          message: "User not found",
         });
       }
 
-      const post = await ctx.db.post.create({
-        data: {
-          content: input.content,
-          authorId,
-          originalId: input.originalId,
-          originalAuthor: input.originalAuthor,
+      const post = await ctx.db.post.findUnique({
+        where: { id },
+      });
+
+      if (!post) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Post not found",
+        });
+      }
+
+      const existingRetweet = await ctx.db.retweet.findFirst({
+        where: {
+          originalPostId: id,
+          originalAuthorId,
+          authorId: user.username,
         },
       });
 
-      return post;
+      if (existingRetweet) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Retweet already exists",
+        });
+      }
+
+      const retweet = await ctx.db.retweet.create({
+        data: {
+          originalPostId: id,
+          originalAuthorId,
+          authorId: user.username,
+        },
+      });
+
+      return retweet;
     }),
 });
