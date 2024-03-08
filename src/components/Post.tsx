@@ -4,7 +4,7 @@ import { api } from "~/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useUser } from "@clerk/clerk-react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Icons } from "./ui/icons";
 import { toast } from "sonner";
 import type { Post } from "@prisma/client";
@@ -28,13 +28,11 @@ type PostProps = {
 
 export default function Post(props: PostProps) {
   const { user: currentUser, isSignedIn } = useUser();
+  const { post, author } = props;
   const [isLiked, setIsLiked] = useState(false);
   const [postLikes, setPostLikes] = useState(0);
   const ctx = api.useUtils();
   const retweetAuthor = props.retweetAuthor;
-
-  const { post, author } = props;
-
 
   const { mutate: likeMutate, isLoading: loadingLike } =
     api.post.addLike.useMutation({
@@ -56,7 +54,7 @@ export default function Post(props: PostProps) {
     });
 
   useEffect(() => {
-    const likeCheck = post.likedBy.some(
+    const userCheck = post.likedBy.some(
       (user: { externalId: string | undefined }) =>
         user.externalId === currentUser?.id,
     );
@@ -75,8 +73,8 @@ export default function Post(props: PostProps) {
       return;
     }
 
-
     if (isLiked) {
+      // this is not working correctly
       setPostLikes(postLikes - 1);
     } else {
       setPostLikes(postLikes + 1);
@@ -122,14 +120,12 @@ export default function Post(props: PostProps) {
               className="rounded-full"
             />
           </Link>
-          <Link href={`/@${post.originalAuthor ?? author.username}`}>
+          <Link href={`/@${author.username}`}>
             <div className="flex flex-col">
               <p className="scroll-m-20 text-xl font-semibold tracking-tight">
-                {post.originalAuthor ?? author.fullName}
+                {author.fullName}
               </p>
-              <p className="text-sm font-thin">
-                @{post.originalAuthor ?? author.username}
-              </p>
+              <p className="text-sm font-thin">@{author.username}</p>
             </div>
           </Link>
         </div>

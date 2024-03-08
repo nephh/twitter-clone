@@ -205,13 +205,9 @@ export const postRouter = createTRPCRouter({
           code: "NOT_FOUND",
           message: "Post not found",
         });
+      }
 
-        if (!post) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Post not found",
-          });
-        }
+      const userCheck = post.likedBy.some((user) => user.externalId === userId);
 
       if (!userCheck) {
         await ctx.db.post.update({
@@ -221,75 +217,17 @@ export const postRouter = createTRPCRouter({
             likedBy: {
               connect: { externalId: userId },
             },
-          });
-        } else {
-          await ctx.db.post.update({
-            where: { id: postId },
-            include: { likedBy: true },
-            data: {
-              likedBy: {
-                disconnect: { externalId: userId },
-              },
-            },
-          });
-        }
+          },
+        });
       } else {
         await ctx.db.post.update({
           where: { id },
           include: { likedBy: true },
-        });
-
-        if (!post) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Post not found",
-          });
-        }
-
-        const userCheck = post.likedBy.some(
-          (user) => user.externalId === userId,
-        );
-
-        if (!userCheck) {
-          await ctx.db.post.update({
-            where: { id: originalId },
-            include: { likedBy: true },
-            data: {
-              likedBy: {
-                connect: { externalId: userId },
-              },
+          data: {
+            likedBy: {
+              disconnect: { externalId: userId },
             },
-          });
-        } else {
-          await ctx.db.post.update({
-            where: { id: originalId },
-            include: { likedBy: true },
-            data: {
-              likedBy: {
-                disconnect: { externalId: userId },
-              },
-            },
-          });
-        }
-      }
-    }),
-
-  retweet: privateProcedure
-    .input(
-      z.object({
-        content: z.string(),
-        originalId: z.string(),
-        originalAuthor: z.string(),
-      }),
-    )
-    .mutation(async ({ ctx, input }) => {
-      const authorId = ctx.currentUser;
-      const { success } = await rateLimit.limit(authorId);
-
-      if (!success) {
-        throw new TRPCError({
-          code: "TOO_MANY_REQUESTS",
-          message: "Rate limit exceeded",
+          },
         });
       }
 
@@ -301,6 +239,7 @@ export const postRouter = createTRPCRouter({
             },
           },
         },
+        include: { likedBy: true },
       });
     }),
 
