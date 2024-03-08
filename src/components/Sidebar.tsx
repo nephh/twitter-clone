@@ -24,7 +24,7 @@ export function Sidebar({ className }: SidebarProps) {
     >
       <div>
         <h2 className="mb-6 mt-3 px-4 text-4xl font-extrabold tracking-tight">
-          Tweeter
+          Twitter
         </h2>
         <div className="space-y-1">
           <Link href="/">

@@ -50,6 +50,42 @@ async function addUserToPost(posts: PostWithLikes[]) {
 }
 
 export const postRouter = createTRPCRouter({
+  singlePost: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { id } = input;
+      const post = await ctx.db.post.findUnique({
+        where: { id },
+        include: { likedBy: true, retweets: true },
+      });
+
+      if (!post) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Post not found",
+        });
+      }
+
+      const user = await clerkClient.users.getUser(post.authorId);
+
+      if (!user.username) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Author not found",
+        });
+      }
+
+      const author = filterUserInfo(user);
+
+      return {
+        post,
+        author,
+        retweetId: "",
+        retweetAuthor: "",
+        retweetedAt: new Date(post.createdAt),
+      };
+    }),
+
   getAll: publicProcedure.query(async ({ ctx }) => {
     const posts = await ctx.db.post.findMany({
       orderBy: { createdAt: "desc" },

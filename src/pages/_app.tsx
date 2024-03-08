@@ -41,7 +41,7 @@ const MyApp: AppType = ({ Component, pageProps }: AppProps) => {
         disableTransitionOnChange
       >
         <Head>
-          <title>Tweeter</title>
+          <title>Twitter</title>
           <meta name="description" content="tweet something fun" />
           <link rel="icon" href="/favicon.ico" />
         </Head>
