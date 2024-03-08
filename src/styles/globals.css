@@ -45,6 +45,10 @@ body {
   @apply rounded-full bg-zinc-700;
 }
 
+::selection {
+  @apply bg-zinc-200 text-primary-foreground;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

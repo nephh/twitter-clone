@@ -7,12 +7,22 @@ import { useUser } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
 import { Icons } from "./ui/icons";
 import { toast } from "sonner";
-import type { Post } from "@prisma/client";
+import type { Post, Retweet } from "@prisma/client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
+import { Button } from "./ui/button";
 
 dayjs.extend(relativeTime);
 
 type PostProps = {
-  post: Post & { likedBy: { externalId: string | undefined }[] };
+  post: Post & {
+    likedBy: { externalId: string | undefined }[];
+    retweets: Retweet[];
+  };
   author: {
     id: string;
     email: string | null;
@@ -30,7 +40,9 @@ export default function Post(props: PostProps) {
   const { user: currentUser, isSignedIn } = useUser();
   const { post, author } = props;
   const [isLiked, setIsLiked] = useState(false);
+  const [isRetweeted, setIsRetweeted] = useState(false);
   const [postLikes, setPostLikes] = useState(0);
+  const [postRetweets, setPostRetweets] = useState(0);
   const ctx = api.useUtils();
   const retweetAuthor = props.retweetAuthor;
 
@@ -48,19 +60,39 @@ export default function Post(props: PostProps) {
         void ctx.post.getAll.invalidate();
         void ctx.post.userPosts.invalidate();
       },
-      onError: (e) => {
+      onError: () => {
         toast.error("You may only retweet a post once");
+      },
+    });
+
+  const { mutate: deleteMutate, isLoading: loadingDelete } =
+    api.post.delete.useMutation({
+      onSuccess: () => {
+        void ctx.post.getAll.invalidate();
+        void ctx.post.userPosts.invalidate();
+        toast.success("Post deleted successfully");
+      },
+      onError: () => {
+        toast.error("There was an error deleting the post");
       },
     });
 
   useEffect(() => {
     const userCheck = post.likedBy.some(
-      (user: { externalId: string | undefined }) =>
-        user.externalId === currentUser?.id,
+      (user: { externalId: string | undefined }) => {
+        return user.externalId === currentUser?.id;
+      },
     );
+
+    const retweetCheck = post.retweets.some((retweet: Retweet) => {
+      return retweet.authorId === currentUser?.username;
+    });
+
     setIsLiked(userCheck);
+    setIsRetweeted(retweetCheck);
+    setPostRetweets(post.retweets.length);
     setPostLikes(post.likedBy.length);
-  }, [post?.likedBy, currentUser?.id]);
+  }, [post.likedBy, currentUser?.id, post.retweets, currentUser?.username]);
 
   async function handleLike(
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
@@ -98,8 +130,13 @@ export default function Post(props: PostProps) {
     retweetMutate({ id, originalAuthorId });
   }
 
-  if (!post || !author) {
-    return null;
+  function handleDelete(
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>,
+    id: string,
+  ) {
+    e.preventDefault();
+
+    deleteMutate({ id });
   }
 
   return (
@@ -140,30 +177,53 @@ export default function Post(props: PostProps) {
         </div>
       </Link>
       <div className="flex w-full flex-row items-center justify-between gap-4">
-        <button
-          onClick={(e) => handleLike(e, post.id)}
-          disabled={loadingLike}
-          className="flex flex-row items-center justify-center gap-1"
-        >
-          {!isLiked ? (
-            <Icons.emptyHeart className="h-5 w-5" />
-          ) : (
-            <Icons.heart className="h-5 w-5" color="#ef4444" />
-          )}
-          {postLikes}
-        </button>
-        <button
-          onClick={(e) => handleRetweet(e, post.id, author.id)}
-          disabled={loadingRetweet}
-          className="flex flex-row items-center justify-center gap-1"
-        >
-          {!isLiked ? (
-            <Icons.retweet className="h-5 w-5" />
-          ) : (
-            <Icons.retweet className="h-5 w-5" color="#15803d" />
-          )}
-        </button>
-        <Icons.menu className="h-5 w-5" />
+        <div className="flex flex-row gap-4">
+          <Button
+            variant={"ghost"}
+            onClick={(e) => handleLike(e, post.id)}
+            disabled={loadingLike}
+            className="flex flex-row items-center justify-center gap-1 p-2"
+          >
+            {!isLiked ? (
+              <Icons.emptyHeart className="h-5 w-5" />
+            ) : (
+              <Icons.heart className="h-5 w-5" color="#ef4444" />
+            )}
+            {postLikes}
+          </Button>
+          <Button
+            variant={"ghost"}
+            onClick={(e) => handleRetweet(e, post.id, author.id)}
+            disabled={loadingRetweet}
+            className="flex flex-row items-center justify-center gap-1 p-2"
+          >
+            {!isRetweeted ? (
+              <Icons.retweet className="h-5 w-5" />
+            ) : (
+              <Icons.retweet className="h-5 w-5" color="#15803d" />
+            )}
+            {postRetweets}
+          </Button>
+        </div>
+        {currentUser?.id === author.id && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant={"ghost"} name="menu" className="p-2">
+                <Icons.menu className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="center" forceMount>
+              <DropdownMenuItem
+                className="flex items-center"
+                onClick={(e) => handleDelete(e, post.id)}
+                disabled={loadingDelete}
+              >
+                <Icons.delete className="h-5 w-5" />{" "}
+                <span className="ml-2 text-base font-semibold">Delete</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </div>
   );

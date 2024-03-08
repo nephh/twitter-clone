@@ -74,9 +74,8 @@ export default async function handler(
       },
     });
   } else if (eventType === "user.deleted") {
-    // deleted user's posts are not removed from other
-    // user's likedPosts array
     const { id } = evt.data;
+    console.log(evt.data);
 
     const posts = await db.post.findMany({
       include: { likedBy: true },
@@ -104,6 +103,12 @@ export default async function handler(
     }
 
     await db.post.deleteMany({
+      where: {
+        authorId: id,
+      },
+    });
+
+    await db.retweet.deleteMany({
       where: {
         authorId: id,
       },

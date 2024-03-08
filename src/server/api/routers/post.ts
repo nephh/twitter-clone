@@ -2,7 +2,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { filterUserInfo } from "~/lib/utils";
-import type { Post, User } from "@prisma/client";
+import type { Post, Retweet, User } from "@prisma/client";
 import { Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 import {
@@ -20,7 +20,7 @@ export const rateLimit = new Ratelimit({
   analytics: true,
 });
 
-export type PostWithLikes = Post & { likedBy: User[] };
+export type PostWithLikes = Post & { likedBy: User[]; retweets: Retweet[] };
 
 async function addUserToPost(posts: PostWithLikes[]) {
   const users = (
@@ -53,7 +53,7 @@ export const postRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
     const posts = await ctx.db.post.findMany({
       orderBy: { createdAt: "desc" },
-      include: { likedBy: true },
+      include: { likedBy: true, retweets: true },
     });
 
     if (!posts) {
@@ -113,12 +113,12 @@ export const postRouter = createTRPCRouter({
       const userPosts = await ctx.db.post.findMany({
         where: { authorId: user.id },
         orderBy: { createdAt: "desc" },
-        include: { likedBy: true },
+        include: { likedBy: true, retweets: true },
       });
 
       const allPosts = await ctx.db.post.findMany({
         orderBy: { createdAt: "desc" },
-        include: { likedBy: true },
+        include: { likedBy: true, retweets: true },
       });
 
       const retweets = await ctx.db.retweet.findMany({
@@ -277,10 +277,13 @@ export const postRouter = createTRPCRouter({
       });
 
       if (existingRetweet) {
-        throw new TRPCError({
-          code: "CONFLICT",
-          message: "Retweet already exists",
+        await ctx.db.retweet.delete({
+          where: {
+            id: existingRetweet.id,
+          },
         });
+
+        return;
       }
 
       const retweet = await ctx.db.retweet.create({
@@ -292,5 +295,40 @@ export const postRouter = createTRPCRouter({
       });
 
       return retweet;
+    }),
+
+  delete: privateProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { id } = input;
+      const authorId = ctx.currentUser;
+
+      const post = await ctx.db.post.findUnique({
+        where: { id },
+      });
+
+      if (!post) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Post not found",
+        });
+      }
+
+      if (post.authorId !== authorId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "You are not authorized to delete this post",
+        });
+      }
+
+      await ctx.db.retweet.deleteMany({
+        where: { originalPostId: id },
+      });
+
+      await ctx.db.post.delete({
+        where: { id },
+      });
+
+      return post;
     }),
 });
