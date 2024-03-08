@@ -44,19 +44,12 @@ async function addUserToPost(posts: PostWithLikes[]) {
       author,
       retweetId: "",
       retweetAuthor: "",
-      retweetedAt: "",
+      retweetedAt: new Date(post.createdAt),
     };
   });
 }
 
 export const postRouter = createTRPCRouter({
-  getLatest: publicProcedure.query(({ ctx }) => {
-    return ctx.db.post.findFirst({
-      orderBy: { createdAt: "desc" },
-      include: { likedBy: true },
-    });
-  }),
-
   getAll: publicProcedure.query(async ({ ctx }) => {
     const posts = await ctx.db.post.findMany({
       orderBy: { createdAt: "desc" },
@@ -71,8 +64,12 @@ export const postRouter = createTRPCRouter({
     }
 
     const retweets = await ctx.db.retweet.findMany({
-      include: { originalPost: { include: { likedBy: true } } },
+      include: {
+        originalPost: { include: { likedBy: true } },
+        originalAuthor: true,
+      },
     });
+
     const originalPosts = await addUserToPost(posts);
 
     const fullRetweets = retweets.map((post) => {
@@ -89,7 +86,14 @@ export const postRouter = createTRPCRouter({
         };
       }
     });
-    return [...originalPosts, ...fullRetweets];
+    const combined = [...originalPosts, ...fullRetweets];
+
+    combined.sort(
+      (a, b) =>
+        (b?.retweetedAt?.getTime() ?? 0) - (a?.retweetedAt?.getTime() ?? 0),
+    );
+
+    return combined;
   }),
 
   userPosts: publicProcedure
@@ -207,6 +211,14 @@ export const postRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { id, originalAuthorId } = input;
       const authorId = ctx.currentUser;
+      const user = await clerkClient.users.getUser(authorId);
+
+      if (!user.username) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "User not found",
+        });
+      }
 
       const post = await ctx.db.post.findUnique({
         where: { id },
@@ -223,7 +235,7 @@ export const postRouter = createTRPCRouter({
         data: {
           originalPostId: id,
           originalAuthorId,
-          authorId,
+          authorId: user.username,
         },
       });
 

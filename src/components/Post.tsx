@@ -20,6 +20,10 @@ export default function Post(props: PostWithUser) {
   const ctx = api.useUtils();
   const post = props?.post;
   const author = props?.author;
+  const retweetAuthor = props?.retweetAuthor;
+
+  console.log(props?.post.likedBy.length);
+
   const { mutate, isLoading } = api.post.addLike.useMutation({
     onSuccess: () => {
       void ctx.post.getAll.invalidate();
@@ -43,7 +47,7 @@ export default function Post(props: PostWithUser) {
     setIsLiked(userCheck ?? false);
   }, [post?.likedBy, currentUser?.id]);
 
-  async function handleClick(
+  async function handleLike(
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
     id: string,
   ) {
@@ -54,14 +58,11 @@ export default function Post(props: PostWithUser) {
       return;
     }
 
-    if (!postLikes) {
-      return null;
-    }
-
     if (isLiked) {
-      setPostLikes(postLikes - 1);
+      // this is not working correctly
+      setPostLikes((prevLikes) => prevLikes ?? 0 - 1);
     } else {
-      setPostLikes(postLikes + 1);
+      setPostLikes((prevLikes) => prevLikes ?? 0 + 1);
     }
     setIsLiked(!isLiked);
     mutate({ id });
@@ -87,9 +88,14 @@ export default function Post(props: PostWithUser) {
 
   return (
     <div className="border-b p-6">
+      {retweetAuthor === "" ? null : (
+        <p className="mb-5 text-base italic text-muted-foreground opacity-50">
+          Retweeted by: {retweetAuthor}
+        </p>
+      )}
       <div className="mb-4 flex flex-row justify-between">
         <div className="flex w-full flex-row items-center gap-4">
-          <Link href={`/@${  author.username}`}>
+          <Link href={`/@${author.username}`}>
             <Image
               src={author.imageUrl}
               alt="post profile picture"
@@ -119,7 +125,7 @@ export default function Post(props: PostWithUser) {
       </Link>
       <div className="flex w-full flex-row items-center justify-between gap-4">
         <button
-          onClick={(e) => handleClick(e, post.id)}
+          onClick={(e) => handleLike(e, post.id)}
           disabled={isLoading}
           className="flex flex-row items-center justify-center gap-1"
         >

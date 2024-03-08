@@ -37,8 +37,15 @@ function ProfileFeed(props: { username: string }) {
 
   return posts.length > 0 ? (
     <div className="flex flex-col overflow-y-scroll">
-      {posts.map(({ post, author }) => (
-        <Post key={post.id} post={post} author={author} />
+      {posts.map(({ post, author, retweetId, retweetAuthor, retweetedAt }) => (
+        <Post
+          key={post.id}
+          post={post}
+          author={author}
+          retweetId={retweetId}
+          retweetAuthor={retweetAuthor}
+          retweetedAt={retweetedAt}
+        />
       ))}
     </div>
   ) : (
