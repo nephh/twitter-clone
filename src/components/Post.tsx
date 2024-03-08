@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { type RouterOutputs } from "~/utils/api";
 import { api } from "~/utils/api";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -8,21 +7,33 @@ import { useUser } from "@clerk/clerk-react";
 import { useEffect, useState } from "react";
 import { Icons } from "./ui/icons";
 import { toast } from "sonner";
+import type { Post } from "@prisma/client";
 
 dayjs.extend(relativeTime);
 
-type PostWithUser = RouterOutputs["post"]["getAll"][number];
+type PostProps = {
+  post: Post & { likedBy: { externalId: string | undefined }[] };
+  author: {
+    id: string;
+    email: string | null;
+    username: string | null;
+    imageUrl: string;
+    fullName: string | null;
+    createdAt: number;
+  };
+  retweetAuthor: string;
+  retweetId: string;
+  retweetedAt: Date;
+};
 
-export default function Post(props: PostWithUser) {
+export default function Post(props: PostProps) {
   const { user: currentUser, isSignedIn } = useUser();
   const [isLiked, setIsLiked] = useState(false);
-  const [postLikes, setPostLikes] = useState(props?.post.likedBy.length);
+  const [postLikes, setPostLikes] = useState(0);
   const ctx = api.useUtils();
-  const post = props?.post;
-  const author = props?.author;
-  const retweetAuthor = props?.retweetAuthor;
-
-  console.log(props?.post.likedBy.length);
+  const post = props.post;
+  const author = props.author;
+  const retweetAuthor = props.retweetAuthor;
 
   const { mutate, isLoading } = api.post.addLike.useMutation({
     onSuccess: () => {
@@ -40,11 +51,12 @@ export default function Post(props: PostWithUser) {
     });
 
   useEffect(() => {
-    const userCheck = post?.likedBy.some(
+    const userCheck = post.likedBy.some(
       (user: { externalId: string | undefined }) =>
         user.externalId === currentUser?.id,
     );
-    setIsLiked(userCheck ?? false);
+    setIsLiked(userCheck);
+    setPostLikes(post.likedBy.length);
   }, [post?.likedBy, currentUser?.id]);
 
   async function handleLike(
@@ -60,9 +72,9 @@ export default function Post(props: PostWithUser) {
 
     if (isLiked) {
       // this is not working correctly
-      setPostLikes((prevLikes) => prevLikes ?? 0 - 1);
+      setPostLikes(postLikes - 1);
     } else {
-      setPostLikes((prevLikes) => prevLikes ?? 0 + 1);
+      setPostLikes(postLikes + 1);
     }
     setIsLiked(!isLiked);
     mutate({ id });
