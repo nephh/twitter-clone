@@ -42,8 +42,6 @@ function ProfileFeed(props: { username: string }) {
           return null;
         }
 
-        console.log(post);
-
         return (
           <Post
             key={post.retweetId === "" ? post.post.id : post.retweetId}

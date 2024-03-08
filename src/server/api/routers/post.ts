@@ -231,7 +231,7 @@ export const postRouter = createTRPCRouter({
         });
       }
 
-      const likedPosts = await ctx.db.post.findMany({
+      await ctx.db.post.findMany({
         where: {
           likedBy: {
             some: {
@@ -241,7 +241,6 @@ export const postRouter = createTRPCRouter({
         },
         include: { likedBy: true },
       });
-      console.log(likedPosts);
     }),
 
   retweet: privateProcedure
