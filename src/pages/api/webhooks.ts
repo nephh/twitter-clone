@@ -75,7 +75,16 @@ export default async function handler(
     });
   } else if (eventType === "user.deleted") {
     const { id } = evt.data;
-    console.log(evt.data);
+
+    const user = await db.user.findUnique({
+      where: {
+        externalId: id,
+      },
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
     const posts = await db.post.findMany({
       include: { likedBy: true },
@@ -110,7 +119,7 @@ export default async function handler(
 
     await db.retweet.deleteMany({
       where: {
-        authorId: id,
+        authorId: user.username,
       },
     });
 

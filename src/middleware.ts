@@ -8,6 +8,7 @@ export default authMiddleware({
     "/api/webhooks(.*)",
     "/signup",
     "/login",
+    "/sso-callback",
   ],
   signInUrl: "/login",
   // Routes that can always be accessed, and have

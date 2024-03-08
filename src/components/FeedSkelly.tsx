@@ -15,7 +15,7 @@ export default function FeedSkelly({ posts = 5 }) {
               <Skeleton className="h-4 w-[150px]" />
             </div>
           </div>
-          <Skeleton className="ml-4 h-4 w-[700px]" />
+          <Skeleton className="ml-4 h-4 w-[600px]" />
         </div>
       ))}
     </div>

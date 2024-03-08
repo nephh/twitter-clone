@@ -38,7 +38,7 @@ export default function AuthenticationPage() {
           <BackgroundBeams />
           <div className="relative z-20 flex items-center text-lg font-medium">
             <h1 className="w-full scroll-m-20 text-right text-4xl font-extrabold tracking-tight lg:text-5xl">
-              Tweeter
+              <Link href="/">Tweeter</Link>
             </h1>
           </div>
           <div className="z-20 flex h-full items-end">
