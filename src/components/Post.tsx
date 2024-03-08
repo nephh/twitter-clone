@@ -35,18 +35,22 @@ export default function Post(props: PostProps) {
   const author = props.author;
   const retweetAuthor = props.retweetAuthor;
 
-  const { mutate, isLoading } = api.post.addLike.useMutation({
-    onSuccess: () => {
-      void ctx.post.getAll.invalidate();
-      void ctx.post.userPosts.invalidate();
-    },
-  });
+  const { mutate: likeMutate, isLoading: loadingLike } =
+    api.post.addLike.useMutation({
+      onSuccess: () => {
+        void ctx.post.getAll.invalidate();
+        void ctx.post.userPosts.invalidate();
+      },
+    });
 
   const { mutate: retweetMutate, isLoading: loadingRetweet } =
     api.post.retweet.useMutation({
       onSuccess: () => {
         void ctx.post.getAll.invalidate();
         void ctx.post.userPosts.invalidate();
+      },
+      onError: (e) => {
+        toast.error("You may only retweet a post once");
       },
     });
 
@@ -77,7 +81,7 @@ export default function Post(props: PostProps) {
       setPostLikes(postLikes + 1);
     }
     setIsLiked(!isLiked);
-    mutate({ id });
+    likeMutate({ id });
   }
 
   function handleRetweet(
@@ -86,6 +90,7 @@ export default function Post(props: PostProps) {
     originalAuthorId: string,
   ) {
     e.preventDefault();
+
     if (!isSignedIn) {
       toast.error("You must be signed in to retweet a post");
       return;
@@ -138,7 +143,7 @@ export default function Post(props: PostProps) {
       <div className="flex w-full flex-row items-center justify-between gap-4">
         <button
           onClick={(e) => handleLike(e, post.id)}
-          disabled={isLoading}
+          disabled={loadingLike}
           className="flex flex-row items-center justify-center gap-1"
         >
           {!isLiked ? (

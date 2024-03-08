@@ -268,6 +268,21 @@ export const postRouter = createTRPCRouter({
         });
       }
 
+      const existingRetweet = await ctx.db.retweet.findFirst({
+        where: {
+          originalPostId: id,
+          originalAuthorId,
+          authorId: user.username,
+        },
+      });
+
+      if (existingRetweet) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Retweet already exists",
+        });
+      }
+
       const retweet = await ctx.db.retweet.create({
         data: {
           originalPostId: id,
