@@ -7,10 +7,10 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 
-  // Do not use foreign keys (PlanetScale does not support them)
   relationMode = "prisma"
 }
 
