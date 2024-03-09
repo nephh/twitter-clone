@@ -45,16 +45,16 @@ export function Sidebar({ className }: SidebarProps) {
               <span className="mb-1">Users</span>
             </Button>
           </Link>
+          <Link href="/likes">
+            <Button
+              variant="ghost"
+              className="w-full items-center justify-start gap-4 p-6 text-2xl"
+            >
+              <Icons.emptyHeart className="h-5 w-5" />
+              <span className="mb-1">Likes</span>
+            </Button>
+          </Link>
           <SignedIn>
-            <Link href="/likes">
-              <Button
-                variant="ghost"
-                className="w-full items-center justify-start gap-4 p-6 text-2xl"
-              >
-                <Icons.emptyHeart className="h-5 w-5" />
-                <span className="mb-1">Likes</span>
-              </Button>
-            </Link>
             <SignOutButton>
               <Button
                 variant="ghost"

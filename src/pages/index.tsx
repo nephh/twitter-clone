@@ -44,7 +44,7 @@ function CreatePostWizard() {
     },
   });
 
-  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     const newCharCount = e.target.value.length;
     if (newCharCount <= 255) {
       setValue(e.target.value);
@@ -79,17 +79,19 @@ function CreatePostWizard() {
       )}
       {/* eventually we want this input to be a textarea that will grow vertically
       instead of infinitely to the right */}
-      <input
-        type="text"
-        name="post"
-        placeholder="Type something..."
-        className={`grow bg-transparent text-2xl font-semibold placeholder-gray-500 outline-none ${!value && "italic"}`}
-        value={value}
-        onChange={(e) => handleChange(e)}
-        disabled={isLoading}
-      />
+      <div className="flex grow items-center justify-center">
+        <textarea
+          name="post"
+          placeholder="Type something..."
+          className={`max-h-16 grow resize-none bg-transparent text-2xl font-semibold placeholder-gray-500 outline-none transition-all duration-500 ${!value && "h-8 max-h-8 italic"}`}
+          value={value}
+          onChange={(e) => handleChange(e)}
+          disabled={isLoading}
+          maxLength={255}
+        />
+      </div>
       <Link href={`/@${user.username}`}>
-        <Avatar className="h-24 w-24">
+        <Avatar className="h-16 w-16 md:h-24 md:w-24">
           <AvatarImage src={user.imageUrl} alt={`@${user.username}`} />
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
