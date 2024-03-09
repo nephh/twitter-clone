@@ -193,6 +193,43 @@ export const postRouter = createTRPCRouter({
       return combined;
     }),
 
+  userLikes: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const { id } = input;
+      const user = await clerkClient.users.getUser(id);
+
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "User not found",
+        });
+      }
+
+      const likedPosts = await ctx.db.post.findMany({
+        where: { likedBy: { some: { externalId: id } } },
+        include: { likedBy: true, retweets: true },
+        orderBy: { createdAt: "desc" },
+      });
+
+      const posts = await Promise.all(
+        likedPosts.map(async (post) => {
+          const postAuthor = await clerkClient.users.getUser(post.authorId);
+          const author = filterUserInfo(postAuthor);
+
+          return {
+            post,
+            author,
+            retweetId: "",
+            retweetAuthor: "",
+            retweetedAt: new Date(post.createdAt),
+          };
+        }),
+      );
+
+      return posts;
+    }),
+
   create: privateProcedure
     .input(
       z.object({

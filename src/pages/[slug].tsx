@@ -76,6 +76,10 @@ export default function Profile(
     return <NotFound type="Page" />;
   }
 
+  if (!posts) {
+    return <ErrorPage />;
+  }
+
   return (
     <>
       <Head>
@@ -103,7 +107,7 @@ export default function Profile(
         <p className="text-4xl font-bold">{user.fullName}</p>
         <p className="text-xl font-semibold">@{user.username}</p>
         <div className="mt-4 flex flex-row justify-between gap-4 text-lg font-semibold text-gray-500">
-          {posts && (
+          {posts.length > 0 && (
             <p className="w-full">
               {posts.length} Post{posts.length > 1 && "s"}
             </p>

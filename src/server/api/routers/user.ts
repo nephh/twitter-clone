@@ -24,4 +24,9 @@ export const userRouter = createTRPCRouter({
 
       return filterUserInfo(user);
     }),
+
+  getAllUsers: publicProcedure.query(async () => {
+    const users = await clerkClient.users.getUserList({});
+    return users.map(filterUserInfo);
+  }),
 });
