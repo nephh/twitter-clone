@@ -52,7 +52,11 @@ function CreatePostWizard() {
     }
   }
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  function handleSubmit(
+    e:
+      | React.FormEvent<HTMLFormElement>
+      | React.KeyboardEvent<HTMLTextAreaElement>,
+  ) {
     e.preventDefault();
     mutate({ content: value });
   }
@@ -88,6 +92,11 @@ function CreatePostWizard() {
           onChange={(e) => handleChange(e)}
           disabled={isLoading}
           maxLength={255}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              handleSubmit(e);
+            }
+          }}
         />
       </div>
       <Link href={`/@${user.username}`}>
