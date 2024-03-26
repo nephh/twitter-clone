@@ -75,7 +75,7 @@ function CreatePostWizard() {
         <Button
           variant="ghost"
           name="post"
-          className="p-5 text-xl font-semibold"
+          className="p-3 md:p-5 text-lg md:text-xl font-semibold"
           disabled={isLoading}
         >
           Post
@@ -87,7 +87,7 @@ function CreatePostWizard() {
         <textarea
           name="post"
           placeholder="Type something..."
-          className={`max-h-16 grow resize-none bg-transparent text-2xl font-semibold placeholder-gray-500 outline-none transition-all duration-500 ${!value && "h-8 max-h-8 italic"}`}
+          className={`max-h-16 grow resize-none bg-transparent text-lg md:text-2xl font-semibold placeholder-gray-500 outline-none transition-all duration-500 ${!value && "h-8 max-h-8 italic"}`}
           value={value}
           onChange={(e) => handleChange(e)}
           disabled={isLoading}
