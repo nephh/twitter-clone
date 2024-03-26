@@ -75,19 +75,17 @@ function CreatePostWizard() {
         <Button
           variant="ghost"
           name="post"
-          className="p-3 md:p-5 text-lg md:text-xl font-semibold"
+          className="p-3 text-lg font-semibold md:p-5 md:text-xl"
           disabled={isLoading}
         >
           Post
         </Button>
       )}
-      {/* eventually we want this input to be a textarea that will grow vertically
-      instead of infinitely to the right */}
       <div className="flex grow items-center justify-center">
         <textarea
           name="post"
           placeholder="Type something..."
-          className={`max-h-16 grow resize-none bg-transparent text-lg md:text-2xl font-semibold placeholder-gray-500 outline-none transition-all duration-500 ${!value && "h-8 max-h-8 italic"}`}
+          className={`max-h-16 w-full resize-none bg-transparent text-lg font-semibold placeholder-gray-500 outline-none transition-all duration-500 md:text-2xl ${!value && "h-8 max-h-8 italic"}`}
           value={value}
           onChange={(e) => handleChange(e)}
           disabled={isLoading}
@@ -100,7 +98,7 @@ function CreatePostWizard() {
         />
       </div>
       <Link href={`/@${user.username}`}>
-        <Avatar className="h-16 w-16 md:h-24 md:w-24">
+        <Avatar className="h-14 w-14 md:h-24 md:w-24">
           <AvatarImage src={user.imageUrl} alt={`@${user.username}`} />
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
