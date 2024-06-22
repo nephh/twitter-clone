@@ -128,7 +128,8 @@ export function SignInForm({ className, ...props }: UserAuthFormProps) {
           )}{" "}
           GitHub
         </Button>
-        <Button
+        {/* Broken Google Sign In */}
+        {/* <Button
           onClick={() => signInWith("oauth_google")}
           variant="outline"
           type="button"
@@ -140,7 +141,7 @@ export function SignInForm({ className, ...props }: UserAuthFormProps) {
             <Icons.google className="mr-2 h-4 w-4" />
           )}{" "}
           Google
-        </Button>
+        </Button> */}
       </div>
     </div>
   );
